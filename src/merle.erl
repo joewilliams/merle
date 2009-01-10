@@ -213,7 +213,7 @@ memcache_cas(Key, Flag, ExpTime, CasUniq, Data) ->
 
 %% Close the socket
 memcache_quit() ->
-	gen_server:call(?SERVER, {quit}).			
+	gen_server:call(?SERVER, {quit}).
 
 %%--------------------------------------------------------------------
 %%% Internal functions
@@ -222,7 +222,7 @@ memcache_quit() ->
 send_cmd(Socket, Cmd) ->
     gen_tcp:send(Socket, Cmd ++ "\r\n"),
     Reply = recv_reply(),
-    io:format("~p~n", [Reply]).
+    Reply.
 
 recv_reply() ->
     receive
