@@ -1,0 +1,34 @@
+merle : An erlang based memcached client.
+
+Usage:
+
+[user@host ebin]$ erl
+Erlang (BEAM) emulator version 5.6.5 [source] [64-bit] [smp:2] [async-threads:0] [hipe] [kernel-poll:false]
+
+Eshell V5.6.5  (abort with ^G)
+1> merle:start_link("localhost", 11211).
+{ok,<0.35.0>}
+2> merle:memcache_set("123", "1", "0", "this is some data").
+<<"STORED\r\n">>
+ok
+3> merle:memcache_get("123").                               
+<<"VALUE 123 1 17\r\nthis is some data\r\nEND\r\n">>
+ok
+
+API:
+
+start_link(Host, Port)
+
+memcache_set(Key, Flag, ExpTime, Data)
+
+memcache_add(Key, Flag, ExpTime, Data)
+
+memcache_replace(Key, Flag, ExpTime, Data)
+
+memcache_append(Key, Data)
+
+memcache_prepend(Key, Data)
+
+memcache_cas(Key, Flag, ExpTime, CasUniq, Data)
+
+memcache_quit()
