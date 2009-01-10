@@ -19,6 +19,12 @@ API:
 
 start_link(Host, Port)
 
+memcache_stats()
+
+memcache_get(Key)
+
+memcache_delete(Key, Time)
+
 memcache_set(Key, Flag, ExpTime, Data)
 
 memcache_add(Key, Flag, ExpTime, Data)
