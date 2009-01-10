@@ -76,27 +76,27 @@ handle_call({delete, {Key, Time}}, _From, #state{socket = Socket} = S) ->
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({set, {Key, Flag, ExpTime, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "set " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime ++ " " ++ integer_to_list(length(Data)) ++ "\r\n" ++ Data),
+    Reply = send_cmd(Socket, "add " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, Data),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({add, {Key, Flag, ExpTime, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "add " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime ++ " " ++ integer_to_list(length(Data)) ++ "\r\n" ++ Data),
+    Reply = send_cmd(Socket, "add " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, Data),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({replace, {Key, Flag, ExpTime, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "replace " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime ++ " " ++ integer_to_list(length(Data)) ++ "\r\n" ++ Data),
+    Reply = send_cmd(Socket, "replace " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, Data),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({append, {Key, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "append " ++ Key ++ " " ++ "0" ++ " " ++ "0" ++ " " ++ integer_to_list(length(Data)) ++ "\r\n" ++ Data),
+    Reply = send_cmd(Socket, "append " ++ Key ++ " " ++ "0" ++ " " ++ "0", Data),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({prepend, {Key, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "prepend " ++ Key ++ " " ++ "0" ++ " " ++ "0" ++ " " ++ integer_to_list(length(Data)) ++ "\r\n" ++ Data),
+    Reply = send_cmd(Socket, "prepend " ++ Key ++ " " ++ "0" ++ " " ++ "0", Data),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({cas, {Key, Flag, ExpTime, CasUniq, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "set " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime ++ " " ++ integer_to_list(length(Data)) ++ CasUniq ++ "\r\n" ++ Data),
+    Reply = send_cmd(Socket, "cas " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, CasUniq, Data),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({quit}, _From, #state{socket = Socket} = _) ->
@@ -219,10 +219,32 @@ memcache_quit() ->
 %%% Internal functions
 %%--------------------------------------------------------------------
 
+%% send_cmd function for simple retrieval and deletion commands
 send_cmd(Socket, Cmd) ->
-    gen_tcp:send(Socket, Cmd ++ "\r\n"),
+	BinCmd = list_to_binary(Cmd),
+    gen_tcp:send(Socket, <<BinCmd/binary, "\r\n">>),
     Reply = recv_reply(),
     Reply.
+
+%% send_cmd funtion for storage commands
+send_cmd(Socket, Cmd, Data) ->
+	Bin = list_to_binary(Data),
+	Bytes = integer_to_list(size(Bin)),
+	BinCmd = list_to_binary(Cmd ++ " " ++ Bytes),
+    gen_tcp:send(Socket, <<BinCmd/binary, "\r\n">>),
+    gen_tcp:send(Socket, <<Bin/binary, "\r\n">>),
+    Reply = recv_reply(),
+    Reply.
+
+%% send_cmd for the cas command
+send_cmd(Socket, Cmd, CasUniq, Data) ->
+	Bin = list_to_binary(Data),
+	Bytes = integer_to_list(size(Bin)),
+	BinCmd = list_to_binary(Cmd ++ " " ++ Bytes ++ " " + CasUniq),
+    gen_tcp:send(Socket, <<BinCmd/binary, "\r\n">>),
+    gen_tcp:send(Socket, <<Bin/binary, "\r\n">>),
+    Reply = recv_reply(),
+    Reply.    
 
 recv_reply() ->
     receive
@@ -231,5 +253,3 @@ recv_reply() ->
     after 5000 ->
 	    timeout
     end.
-
-
