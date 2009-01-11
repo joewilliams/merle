@@ -1,13 +1,39 @@
-%%%%-------------------------------------------------------------------
-%%% File    : merle.erl
-%%% Author  : Joe Williams (joe at joetify dot com)
-%%% Description : merle an Erlang memcached client
-%%% License	: Released under the MIT License.
-%%%
-%%% Created : 20090109
-%%%-------------------------------------------------------------------
+%% Copyright (c) 2009 Joseph Williams <joe@joetify.com>
+%%
+%% Permission is hereby granted, free of charge, to any person
+%% obtaining a copy of this software and associated documentation
+%% files (the "Software"), to deal in the Software without
+%% restriction, including without limitation the rights to use,
+%% copy, modify, merge, publish, distribute, sublicense, and/or sell
+%% copies of the Software, and to permit persons to whom the
+%% Software is furnished to do so, subject to the following
+%% conditions:
+%%
+%% The above copyright notice and this permission notice shall be
+%% included in all copies or substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+%% EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+%% OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+%% NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+%% HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+%% WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+%% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+%% OTHER DEALINGS IN THE SOFTWARE.
+%%
+%% @author Joseph Williams <joe@joetify.com>
+%% @copyright 2008 Joseph Williams
+%% @version pre 0.1
+%% @doc A memcached client.
+%%
+%% This code is available as Open Source Software under the MIT license.
+%%
+%% Updates at http://github.com/joewilliams/merle/
 
 -module(merle).
+
+-author("Joseph Williams <joe@joetify.com>").
+-version("Version: pre 0.1").
 
 -behaviour(gen_server).
 
@@ -17,10 +43,9 @@
 	{reuseaddr, true}, {active, true}]).
 
 %% API
--export([start_link/2, memcache_stats/0, memcache_get/1,
-	memcache_delete/2,memcache_set/4,memcache_add/4,
-	memcache_replace/4,memcache_append/2,memcache_prepend/2,
-	memcache_cas/5,memcache_quit/0]).
+-export([start_link/2, stats/0, get/1,
+	delete/2,set/4,add/4,replace/4,append/2,prepend/2,
+	increment/2,decrement/2,cas/5,quit/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -64,39 +89,65 @@ init([Host, Port]) ->
 %%--------------------------------------------------------------------
 
 handle_call({stats}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "stats"),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"stats">>])),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({getkey, {Key}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "get " ++ Key),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"get ">>, Key])),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({delete, {Key, Time}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "delete " ++ Key ++ " " ++ Time),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"delete ">>, Key, <<" ">>, Time])),
     {reply, Reply, S#state{socket = Socket}};
 
-handle_call({set, {Key, Flag, ExpTime, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "add " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, Data),
+handle_call({set, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"set ">>, Key, <<" ">>, Flag, <<" ">>, 
+    	ExpTime, <<" ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
-handle_call({add, {Key, Flag, ExpTime, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "add " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, Data),
+handle_call({add, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"add ">>, Key, <<" ">>, Flag, <<" ">>, 
+    	ExpTime, <<" ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
-handle_call({replace, {Key, Flag, ExpTime, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "replace " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, Data),
+handle_call({replace, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"replace ">>, Key, <<" ">>, Flag, <<" ">>, 
+    	ExpTime, <<" ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
-handle_call({append, {Key, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "append " ++ Key ++ " " ++ "0" ++ " " ++ "0", Data),
+handle_call({append, {Key, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"append ">>, Key, <<" 0 0 ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
-handle_call({prepend, {Key, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "prepend " ++ Key ++ " " ++ "0" ++ " " ++ "0", Data),
+handle_call({prepend, {Key, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"prepend ">>, Key, <<" 0 0 ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
-handle_call({cas, {Key, Flag, ExpTime, CasUniq, Data}}, _From, #state{socket = Socket} = S) ->
-    Reply = send_cmd(Socket, "cas " ++ Key ++ " " ++ Flag ++ " " ++ ExpTime, CasUniq, Data),
+handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"cas ">>, Key, <<" ">>, Flag, <<" ">>, 
+    	ExpTime, <<" ">>, Bytes, <<" ">>, CasUniq]), Bin),
+    {reply, Reply, S#state{socket = Socket}};
+    
+handle_call({increment, {Key, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"incr ">>, Key]), Bin),
+    {reply, Reply, S#state{socket = Socket}};
+    
+handle_call({decrement, {Key, Value}}, _From, #state{socket = Socket} = S) ->
+	Bin = list_to_binary(Value),
+    Reply = send_cmd(Socket, iolist_to_binary([<<"decr ">>, Key]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({quit}, _From, #state{socket = Socket} = _) ->
@@ -150,11 +201,11 @@ code_change(_OldVsn, State, _Extra) ->
 %%	
 
 %% Retrieve memcached stats
-memcache_stats() ->
+stats() ->
 	gen_server:call(?SERVER, {stats}).
 
 %% Retrieve value based off of key
-memcache_get(Key) ->
+get(Key) ->
 	gen_server:call(?SERVER, {getkey,{Key}}).
 
 %%
@@ -166,53 +217,70 @@ memcache_get(Key) ->
 %% Time is the amount of time in seconds
 %% the client wishes the server to refuse 
 %% "add" and "replace" commands with this key.
-memcache_delete(Key, Time) ->
+delete(Key, Time) ->
 	gen_server:call(?SERVER, {delete, {Key, Time}}).
 
 %%	
 %% Storage Commands
 %%
-
 %% *Flag* is an arbitrary 16-bit unsigned integer (written out in
-%% decimal) that the server stores along with the data and sends back
+%% decimal) that the server stores along with the Value and sends back
 %% when the item is retrieved.
-
+%%
 %% *ExpTime* is expiration time. If it's 0, the item never expires
 %% (although it may be deleted from the cache to make place for other
 %%  items).
-
+%%
 %% *CasUniq* is a unique 64-bit value of an existing entry.
 %% Clients should use the value returned from the "gets" command
 %% when issuing "cas" updates.
+%%
+%% *Value* is the value you want to store. 
 
-%% *Data* is the data you want to store. 
+%% set - "store this value"
+set(Key, Flag, ExpTime, Value) ->
+	gen_server:call(?SERVER, {set, {Key, Flag, ExpTime, Value}}).
 
-%% set - "store this data"
-memcache_set(Key, Flag, ExpTime, Data) ->
-	gen_server:call(?SERVER, {set, {Key, Flag, ExpTime, Data}}).
+%% add - "store this value, but only if the server *doesn't* already hold Value for this key"
+add(Key, Flag, ExpTime, Value) ->
+	gen_server:call(?SERVER, {add, {Key, Flag, ExpTime, Value}}).
 
-%% add - "store this data, but only if the server *doesn't* already hold data for this key"
-memcache_add(Key, Flag, ExpTime, Data) ->
-	gen_server:call(?SERVER, {add, {Key, Flag, ExpTime, Data}}).
+%% replace - "store this value, but only if the server *does* already hold Value for this key"
+replace(Key, Flag, ExpTime, Value) ->
+	gen_server:call(?SERVER, {replace, {Key, Flag, ExpTime, Value}}).
 
-%% replace - "store this data, but only if the server *does* already hold data for this key"
-memcache_replace(Key, Flag, ExpTime, Data) ->
-	gen_server:call(?SERVER, {replace, {Key, Flag, ExpTime, Data}}).
-
-%% append - "add this data to an existing key after existing data"
-memcache_append(Key, Data) ->
-	gen_server:call(?SERVER, {append, {Key, Data}}).	
+%% append - "add this value to an existing key after existing Value"
+append(Key, Value) ->
+	gen_server:call(?SERVER, {append, {Key, Value}}).	
 	
-%% prepend - "add this data to an existing key before existing data"
-memcache_prepend(Key, Data) ->
-	gen_server:call(?SERVER, {prepend, {Key, Data}}).
+%% prepend - "add this value to an existing key before existing Value"
+prepend(Key, Value) ->
+	gen_server:call(?SERVER, {prepend, {Key, Value}}).
 	
-%% cas - "store this data but only if no one else has updated since I last fetched it"
-memcache_cas(Key, Flag, ExpTime, CasUniq, Data) ->
-	gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Data}}).
+%% cas - "store this Vvlue but only if no one else has updated since I last fetched it"
+cas(Key, Flag, ExpTime, CasUniq, Value) ->
+	gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Value}}).
+
+%%	
+%% Increment/Decrement Commands
+%%
+%% Commands "incr" and "decr" are used to change Value for some item
+%% in-place, incrementing or decrementing it.
+
+%% increment
+increment(Key, Value) ->
+	gen_server:call(?SERVER, {increment, {Key, Value}}).
+
+%% decrement
+decrement(Key, Value) ->
+	gen_server:call(?SERVER, {decrement, {Key, Value}}).
+
+%%
+%% Exit
+%%	
 
 %% Close the socket
-memcache_quit() ->
+quit() ->
 	gen_server:call(?SERVER, {quit}).
 
 %%--------------------------------------------------------------------
@@ -221,30 +289,16 @@ memcache_quit() ->
 
 %% send_cmd function for simple retrieval and deletion commands
 send_cmd(Socket, Cmd) ->
-	BinCmd = list_to_binary(Cmd),
-    gen_tcp:send(Socket, <<BinCmd/binary, "\r\n">>),
+    gen_tcp:send(Socket, <<Cmd/binary, "\r\n">>),
     Reply = recv_reply(),
     Reply.
 
 %% send_cmd funtion for storage commands
-send_cmd(Socket, Cmd, Data) ->
-	Bin = list_to_binary(Data),
-	Bytes = integer_to_list(size(Bin)),
-	BinCmd = list_to_binary(Cmd ++ " " ++ Bytes),
-    gen_tcp:send(Socket, <<BinCmd/binary, "\r\n">>),
-    gen_tcp:send(Socket, <<Bin/binary, "\r\n">>),
+send_cmd(Socket, Cmd, Value) ->
+    gen_tcp:send(Socket, <<Cmd/binary, "\r\n">>),
+    gen_tcp:send(Socket, <<Value/binary, "\r\n">>),
     Reply = recv_reply(),
     Reply.
-
-%% send_cmd for the cas command
-send_cmd(Socket, Cmd, CasUniq, Data) ->
-	Bin = list_to_binary(Data),
-	Bytes = integer_to_list(size(Bin)),
-	BinCmd = list_to_binary(Cmd ++ " " ++ Bytes ++ " " + CasUniq),
-    gen_tcp:send(Socket, <<BinCmd/binary, "\r\n">>),
-    gen_tcp:send(Socket, <<Bin/binary, "\r\n">>),
-    Reply = recv_reply(),
-    Reply.    
 
 recv_reply() ->
     receive
