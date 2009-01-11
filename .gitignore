@@ -1,0 +1,4 @@
+*.class
+*.beam
+*.log
+*.plt

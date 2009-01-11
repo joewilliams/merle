@@ -1,40 +1,49 @@
 merle : An erlang based memcached client.
 
+Version : pre 0.1
+Author : Joe Williams
+Info : http://github.com/joewilliams/merle/
+
+This code is available as Open Source Software under the MIT license.
+
 Usage:
 
-[user@host ebin]$ erl
+[zeusfaber@der-dieb ebin]$ erl
 Erlang (BEAM) emulator version 5.6.5 [source] [64-bit] [smp:2] [async-threads:0] [hipe] [kernel-poll:false]
 
 Eshell V5.6.5  (abort with ^G)
 1> merle:start_link("localhost", 11211).
-{ok,<0.35.0>}
-2> merle:memcache_set("123", "1", "0", "this is some data").
+{ok,<0.33.0>}
+2> merle:set("b", "1", "0", "1").
 <<"STORED\r\n">>
-ok
-3> merle:memcache_get("123").                               
-<<"VALUE 123 1 17\r\nthis is some data\r\nEND\r\n">>
-ok
+3> merle:get("b").               
+<<"VALUE b 1 1\r\n1\r\nEND\r\n">>
+
 
 API:
 
 start_link(Host, Port)
 
-memcache_stats()
+stats()
 
-memcache_get(Key)
+get(Key)
 
-memcache_delete(Key, Time)
+delete(Key, Time)
 
-memcache_set(Key, Flag, ExpTime, Data)
+set(Key, Flag, ExpTime, Data)
 
-memcache_add(Key, Flag, ExpTime, Data)
+add(Key, Flag, ExpTime, Data)
 
-memcache_replace(Key, Flag, ExpTime, Data)
+replace(Key, Flag, ExpTime, Data)
 
-memcache_append(Key, Data)
+append(Key, Data)
 
-memcache_prepend(Key, Data)
+prepend(Key, Data)
 
-memcache_cas(Key, Flag, ExpTime, CasUniq, Data)
+cas(Key, Flag, ExpTime, CasUniq, Data)
 
-memcache_quit()
+increment(Key, Data) - Proposed
+
+decrement(Key, Data) - Proposed
+
+quit()
