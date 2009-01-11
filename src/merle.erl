@@ -24,7 +24,7 @@
 %% @author Joseph Williams <joe@joetify.com>
 %% @copyright 2008 Joseph Williams
 %% @version pre 0.1
-%% @doc A memcached client.
+%% @doc an erlang memcached client.
 %%
 %% This code is available as Open Source Software under the MIT license.
 %%
@@ -200,11 +200,11 @@ code_change(_OldVsn, State, _Extra) ->
 %% Retrieval Commands
 %%	
 
-%% Retrieve memcached stats
+%% @doc Retrieve memcached stats
 stats() ->
 	gen_server:call(?SERVER, {stats}).
 
-%% Retrieve value based off of key
+%% @doc Retrieve value based off of key
 get(Key) ->
 	gen_server:call(?SERVER, {getkey,{Key}}).
 
@@ -212,13 +212,13 @@ get(Key) ->
 %% Deletion Commands
 %%	
 
-%% Delete a key and specify time. 
-%%
+%% @doc Delete a key and specify time. 
+delete(Key, Time) ->
+	gen_server:call(?SERVER, {delete, {Key, Time}}).
+
 %% Time is the amount of time in seconds
 %% the client wishes the server to refuse 
 %% "add" and "replace" commands with this key.
-delete(Key, Time) ->
-	gen_server:call(?SERVER, {delete, {Key, Time}}).
 
 %%	
 %% Storage Commands
@@ -237,27 +237,27 @@ delete(Key, Time) ->
 %%
 %% *Value* is the value you want to store. 
 
-%% set - "store this value"
+%% @doc set - "store this value"
 set(Key, Flag, ExpTime, Value) ->
 	gen_server:call(?SERVER, {set, {Key, Flag, ExpTime, Value}}).
 
-%% add - "store this value, but only if the server *doesn't* already hold Value for this key"
+%% @doc add - "store this value, but only if the server *doesn't* already hold Value for this key"
 add(Key, Flag, ExpTime, Value) ->
 	gen_server:call(?SERVER, {add, {Key, Flag, ExpTime, Value}}).
 
-%% replace - "store this value, but only if the server *does* already hold Value for this key"
+%% @doc replace - "store this value, but only if the server *does* already hold Value for this key"
 replace(Key, Flag, ExpTime, Value) ->
 	gen_server:call(?SERVER, {replace, {Key, Flag, ExpTime, Value}}).
 
-%% append - "add this value to an existing key after existing Value"
+%% @doc append - "add this value to an existing key after existing Value"
 append(Key, Value) ->
 	gen_server:call(?SERVER, {append, {Key, Value}}).	
 	
-%% prepend - "add this value to an existing key before existing Value"
+%% @doc prepend - "add this value to an existing key before existing Value"
 prepend(Key, Value) ->
 	gen_server:call(?SERVER, {prepend, {Key, Value}}).
 	
-%% cas - "store this Vvlue but only if no one else has updated since I last fetched it"
+%% @doc cas - "store this Vvlue but only if no one else has updated since I last fetched it"
 cas(Key, Flag, ExpTime, CasUniq, Value) ->
 	gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Value}}).
 
@@ -267,11 +267,11 @@ cas(Key, Flag, ExpTime, CasUniq, Value) ->
 %% Commands "incr" and "decr" are used to change Value for some item
 %% in-place, incrementing or decrementing it.
 
-%% increment
+%% @doc increment the value
 increment(Key, Value) ->
 	gen_server:call(?SERVER, {increment, {Key, Value}}).
 
-%% decrement
+%% @doc decrement the value
 decrement(Key, Value) ->
 	gen_server:call(?SERVER, {decrement, {Key, Value}}).
 
@@ -279,7 +279,7 @@ decrement(Key, Value) ->
 %% Exit
 %%	
 
-%% Close the socket
+%% @doc close the socket
 quit() ->
 	gen_server:call(?SERVER, {quit}).
 
@@ -287,19 +287,23 @@ quit() ->
 %%% Internal functions
 %%--------------------------------------------------------------------
 
-%% send_cmd function for simple retrieval and deletion commands
+%% @private
+%% @doc send_cmd function for simple retrieval and deletion commands
 send_cmd(Socket, Cmd) ->
     gen_tcp:send(Socket, <<Cmd/binary, "\r\n">>),
     Reply = recv_reply(),
     Reply.
 
-%% send_cmd funtion for storage commands
+%% @private
+%% @doc send_cmd funtion for storage commands
 send_cmd(Socket, Cmd, Value) ->
     gen_tcp:send(Socket, <<Cmd/binary, "\r\n">>),
     gen_tcp:send(Socket, <<Value/binary, "\r\n">>),
     Reply = recv_reply(),
     Reply.
 
+%% @private
+%% @doc receive replies from memcached
 recv_reply() ->
     receive
 	{tcp,_,Reply} ->
