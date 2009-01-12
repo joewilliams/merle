@@ -43,8 +43,8 @@
 	{reuseaddr, true}, {active, true}]).
 
 %% API
--export([start_link/2, stats/0, get/1,
-	delete/2,set/4,add/4,replace/4,append/2,prepend/2,
+-export([start_link/2, stats/0, stats_args/1, version/0,
+	get/1,delete/2,set/4,add/4,replace/4,append/2,prepend/2,
 	increment/2,decrement/2,cas/5,quit/0]).
 
 %% gen_server callbacks
@@ -88,17 +88,41 @@ init([Host, Port]) ->
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
 
+%%
+%% Infromational Commands
+%%	
+
 handle_call({stats}, _From, #state{socket = Socket} = S) ->
     Reply = send_cmd(Socket, iolist_to_binary([<<"stats">>])),
     {reply, Reply, S#state{socket = Socket}};
+
+handle_call({stats, {Args}}, _From, #state{socket = Socket} = S) ->
+    Reply = send_cmd(Socket, iolist_to_binary([<<"stats ">>, Args])),
+    {reply, Reply, S#state{socket = Socket}};
+
+handle_call({version}, _From, #state{socket = Socket} = S) ->
+    Reply = send_cmd(Socket, iolist_to_binary([<<"version">>])),
+    {reply, Reply, S#state{socket = Socket}};
+
+%%    
+%% Retrieval Command
+%%
     
 handle_call({getkey, {Key}}, _From, #state{socket = Socket} = S) ->
     Reply = send_cmd(Socket, iolist_to_binary([<<"get ">>, Key])),
     {reply, Reply, S#state{socket = Socket}};
 
+%%
+%% Deletion Command
+%%
+
 handle_call({delete, {Key, Time}}, _From, #state{socket = Socket} = S) ->
     Reply = send_cmd(Socket, iolist_to_binary([<<"delete ">>, Key, <<" ">>, Time])),
     {reply, Reply, S#state{socket = Socket}};
+
+%%	
+%% Storage Commands
+%%
 
 handle_call({set, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
 	Bin = term_to_binary(Value),
@@ -139,6 +163,10 @@ handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, #state{socket = 
     Reply = send_cmd(Socket, iolist_to_binary([<<"cas ">>, Key, <<" ">>, Flag, <<" ">>, 
     	ExpTime, <<" ">>, Bytes, <<" ">>, CasUniq]), Bin),
     {reply, Reply, S#state{socket = Socket}};
+
+%%	
+%% Increment/Decrement Commands
+%%
     
 handle_call({increment, {Key, Value}}, _From, #state{socket = Socket} = S) ->
 	Bin = term_to_binary(Value),
@@ -149,10 +177,15 @@ handle_call({decrement, {Key, Value}}, _From, #state{socket = Socket} = S) ->
 	Bin = term_to_binary(Value),
     Reply = send_cmd(Socket, iolist_to_binary([<<"decr ">>, Key]), Bin),
     {reply, Reply, S#state{socket = Socket}};
+
+%%
+%% Exit
+%%
     
 handle_call({quit}, _From, #state{socket = Socket} = _) ->
 	gen_tcp:close(Socket),
-	{reply, ok, {}}.
+	{reply, quit, {}}.
+	
 
 %%--------------------------------------------------------------------
 %% Function: handle_cast(Msg, State) -> {noreply, State} |
@@ -196,20 +229,32 @@ code_change(_OldVsn, State, _Extra) ->
 %% Command descriptions savagely ripped from:
 %% http://code.sixapart.com/svn/memcached/trunk/server/doc/protocol.txt
 
-%%    
-%% Retrieval Commands
+%%
+%% Infromational Commands
 %%	
 
 %% @doc Retrieve memcached stats
 stats() ->
 	gen_server:call(?SERVER, {stats}).
 
+%% @doc Retrieve memcached stats based on args
+stats_args(Args) ->
+	gen_server:call(?SERVER, {stats,{Args}}).
+
+%% @doc Retrieve memcached version
+version() ->
+	gen_server:call(?SERVER, {version}).
+
+%%    
+%% Retrieval Command
+%%
+
 %% @doc Retrieve value based off of key
 get(Key) ->
 	gen_server:call(?SERVER, {getkey,{Key}}).
 
 %%
-%% Deletion Commands
+%% Deletion Command
 %%	
 
 %% @doc Delete a key and specify time. 
@@ -223,6 +268,7 @@ delete(Key, Time) ->
 %%	
 %% Storage Commands
 %%
+
 %% *Flag* is an arbitrary 16-bit unsigned integer (written out in
 %% decimal) that the server stores along with the Value and sends back
 %% when the item is retrieved.
@@ -264,6 +310,7 @@ cas(Key, Flag, ExpTime, CasUniq, Value) ->
 %%	
 %% Increment/Decrement Commands
 %%
+
 %% Commands "incr" and "decr" are used to change Value for some item
 %% in-place, incrementing or decrementing it.
 
