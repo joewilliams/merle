@@ -312,6 +312,12 @@ get_term(Reply) ->
 	Term.
 
 %% @private
+%% @doc get_response functin for extracting text from responses
+get_response(Reply) ->
+	Response = string:tokens(binary_to_list(Reply), "\r\n"),
+	Response.
+
+%% @private
 %% @doc receive replies from memcached
 recv_reply() ->
     receive
@@ -320,7 +326,7 @@ recv_reply() ->
 			<<"VALUE ", _/binary>> ->
 				get_term(Reply);
 			_ ->
-				Reply
+				get_response(Reply)
 		end	
     after 5000 ->
 	    timeout
