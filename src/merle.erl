@@ -101,52 +101,52 @@ handle_call({delete, {Key, Time}}, _From, #state{socket = Socket} = S) ->
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({set, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_cmd(Socket, iolist_to_binary([<<"set ">>, Key, <<" ">>, Flag, <<" ">>, 
     	ExpTime, <<" ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({add, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_cmd(Socket, iolist_to_binary([<<"add ">>, Key, <<" ">>, Flag, <<" ">>, 
     	ExpTime, <<" ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({replace, {Key, Flag, ExpTime, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_cmd(Socket, iolist_to_binary([<<"replace ">>, Key, <<" ">>, Flag, <<" ">>, 
     	ExpTime, <<" ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({append, {Key, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_cmd(Socket, iolist_to_binary([<<"append ">>, Key, <<" 0 0 ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({prepend, {Key, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_cmd(Socket, iolist_to_binary([<<"prepend ">>, Key, <<" 0 0 ">>, Bytes]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
 handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_cmd(Socket, iolist_to_binary([<<"cas ">>, Key, <<" ">>, Flag, <<" ">>, 
     	ExpTime, <<" ">>, Bytes, <<" ">>, CasUniq]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({increment, {Key, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
     Reply = send_cmd(Socket, iolist_to_binary([<<"incr ">>, Key]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
 handle_call({decrement, {Key, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = list_to_binary(Value),
+	Bin = term_to_binary(Value),
     Reply = send_cmd(Socket, iolist_to_binary([<<"decr ">>, Key]), Bin),
     {reply, Reply, S#state{socket = Socket}};
     
@@ -300,14 +300,28 @@ send_cmd(Socket, Cmd, Value) ->
     gen_tcp:send(Socket, <<Cmd/binary, "\r\n">>),
     gen_tcp:send(Socket, <<Value/binary, "\r\n">>),
     Reply = recv_reply(),
-    Reply.
+   	Reply.
+
+%% @private
+%% @doc get_term functin for extracting terms from responses
+get_term(Reply) ->
+	List = string:tokens(binary_to_list(Reply), "\r\n"),
+	[_,ListTerm,_] = List,
+	BinTerm = list_to_binary(ListTerm),
+	Term = binary_to_term(BinTerm),
+	Term.
 
 %% @private
 %% @doc receive replies from memcached
 recv_reply() ->
     receive
 	{tcp,_,Reply} ->
-	    Reply
+	    case Reply of
+			<<"VALUE ", _/binary>> ->
+				get_term(Reply);
+			_ ->
+				Reply
+		end	
     after 5000 ->
 	    timeout
     end.
