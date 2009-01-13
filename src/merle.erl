@@ -349,17 +349,20 @@ send_cmd(Socket, Cmd, Value) ->
     Reply = recv_reply(),
    	Reply.
 
-%% @private
-%% @doc get_term functin for extracting terms from responses
-get_term(Reply) ->
-	List = string:tokens(binary_to_list(Reply), "\r\n"),
-	[_,ListTerm,_] = List,
-	BinTerm = list_to_binary(ListTerm),
-	Term = binary_to_term(BinTerm),
-	Term.
+%% Reply format <<"VALUE SOMEKEY FLAG BYTES\r\nSOMEVALUE\r\nEND\r\n">>
 
 %% @private
-%% @doc get_response functin for extracting text from responses
+%% @doc get_term functin for extracting terms from responses
+get_term(Data) ->
+	Parse = io_lib:fread("~s ~s ~u ~u\r\n", binary_to_list(Data)),
+	{ok,[_,_,_,Bytes], Rest} = Parse,
+	RestBin = list_to_binary(Rest),
+	<<BinTerm:Bytes/binary, "\r\nEND\r\n">> = RestBin,
+	Term = binary_to_term(BinTerm),
+	Term.
+	
+%% @private
+%% @doc get_response function for extracting text from responses
 get_response(Reply) ->
 	Response = string:tokens(binary_to_list(Reply), "\r\n"),
 	Response.
@@ -368,13 +371,15 @@ get_response(Reply) ->
 %% @doc receive replies from memcached
 recv_reply() ->
     receive
-	{tcp,_,Reply} ->
-	    case Reply of
-			<<"VALUE ", _/binary>> ->
-				get_term(Reply);
-			_ ->
-				get_response(Reply)
-		end	
+  {tcp,_,Reply} ->
+  % check to see what type of response it is
+   case Reply of
+      <<"VALUE ", _/binary>> ->
+        get_term(Reply);
+      _ ->
+        get_response(Reply)
+    end  
     after 5000 ->
-	    timeout
+   timeout
     end.
+
