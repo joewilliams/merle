@@ -6,6 +6,10 @@ Info : http://github.com/joewilliams/merle/
 
 This code is available as Open Source Software under the MIT license.
 
+Caveat : At the moment getting objects from memcached that are larger
+than about 1433 bytes will cause merle to fail. I am working on a better
+loop to get all the data and should have something soon.
+
 Usage:
 
 *Starting things up:*
