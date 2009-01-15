@@ -24,13 +24,9 @@
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add-4">add/4</a></td><td>"store this value, but only if the server *doesn't* already hold Value for this key" using gen_server.</td></tr>
 <tr><td valign="top"><a href="#add-6">add/6</a></td><td>"store this value, but only if the server *doesn't* already hold Value for this key" directly.</td></tr>
-<tr><td valign="top"><a href="#append-2">append/2</a></td><td>"add this value to an existing key after existing Value" using gen_server.</td></tr>
-<tr><td valign="top"><a href="#append-4">append/4</a></td><td>"add this value to an existing key after existing Value" directly.</td></tr>
 <tr><td valign="top"><a href="#cas-5">cas/5</a></td><td>"store this Vvlue but only if no one else has updated since I last fetched it" using gen_server.</td></tr>
 <tr><td valign="top"><a href="#cas-7">cas/7</a></td><td>"store this Vvlue but only if no one else has updated since I last fetched it" directly.</td></tr>
 <tr><td valign="top"><a href="#code_change-3">code_change/3</a></td><td></td></tr>
-<tr><td valign="top"><a href="#decrement-2">decrement/2</a></td><td>decrement the value using gen_server.</td></tr>
-<tr><td valign="top"><a href="#decrement-4">decrement/4</a></td><td>decrement the value directly.</td></tr>
 <tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>delete a key and specify time using gen_server.</td></tr>
 <tr><td valign="top"><a href="#delete-4">delete/4</a></td><td>delete a key and specify time directly.</td></tr>
 <tr><td valign="top"><a href="#get-1">get/1</a></td><td>retrieve value based off of key using gen_server.</td></tr>
@@ -38,11 +34,7 @@
 <tr><td valign="top"><a href="#handle_call-3">handle_call/3</a></td><td></td></tr>
 <tr><td valign="top"><a href="#handle_cast-2">handle_cast/2</a></td><td></td></tr>
 <tr><td valign="top"><a href="#handle_info-2">handle_info/2</a></td><td></td></tr>
-<tr><td valign="top"><a href="#increment-2">increment/2</a></td><td>increment the value using gen_server.</td></tr>
-<tr><td valign="top"><a href="#increment-4">increment/4</a></td><td>increment the value directly.</td></tr>
 <tr><td valign="top"><a href="#init-1">init/1</a></td><td></td></tr>
-<tr><td valign="top"><a href="#prepend-2">prepend/2</a></td><td>"add this value to an existing key before existing Value" using gen_server.</td></tr>
-<tr><td valign="top"><a href="#prepend-4">prepend/4</a></td><td>"add this value to an existing key before existing Value" directly.</td></tr>
 <tr><td valign="top"><a href="#quit-0">quit/0</a></td><td>quit() close the socket using gen_server.</td></tr>
 <tr><td valign="top"><a href="#replace-4">replace/4</a></td><td>"store this value, but only if the server *does* already hold Value for this key" using gen_server.</td></tr>
 <tr><td valign="top"><a href="#replace-6">replace/6</a></td><td>"store this value, but only if the server *does* already hold Value for this key" directly.</td></tr>
@@ -50,9 +42,9 @@
 <tr><td valign="top"><a href="#set-6">set/6</a></td><td>"store this value" directly.</td></tr>
 <tr><td valign="top"><a href="#start_link-2">start_link/2</a></td><td></td></tr>
 <tr><td valign="top"><a href="#stats-0">stats/0</a></td><td>retrieve memcached stats using gen_server.</td></tr>
+<tr><td valign="top"><a href="#stats-1">stats/1</a></td><td>retrieve memcached stats based on args using gen_server.</td></tr>
 <tr><td valign="top"><a href="#stats-2">stats/2</a></td><td>retrieve memcached stats directly.</td></tr>
-<tr><td valign="top"><a href="#stats_args-1">stats_args/1</a></td><td>retrieve memcached stats based on args using gen_server.</td></tr>
-<tr><td valign="top"><a href="#stats_args-3">stats_args/3</a></td><td>retrieve memcached stats based on args directly.</td></tr>
+<tr><td valign="top"><a href="#stats-3">stats/3</a></td><td>retrieve memcached stats based on args directly.</td></tr>
 <tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td></td></tr>
 <tr><td valign="top"><a href="#version-0">version/0</a></td><td>retrieve memcached version using gen_server.</td></tr>
 <tr><td valign="top"><a href="#version-2">version/2</a></td><td>retrieve memcached stats based on args directly.</td></tr>
@@ -70,16 +62,6 @@
 <p><tt>add(Host, Port, Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
 </div><p>"store this value, but only if the server *doesn't* already hold Value for this key" directly</p>
 
-<h3 class="function"><a name="append-2">append/2</a></h3>
-<div class="spec">
-<p><tt>append(Key, Value) -&gt; any()</tt></p>
-</div><p>"add this value to an existing key after existing Value" using gen_server</p>
-
-<h3 class="function"><a name="append-4">append/4</a></h3>
-<div class="spec">
-<p><tt>append(Host, Port, Key, Value) -&gt; any()</tt></p>
-</div><p>"add this value to an existing key after existing Value" directly</p>
-
 <h3 class="function"><a name="cas-5">cas/5</a></h3>
 <div class="spec">
 <p><tt>cas(Key, Flag, ExpTime, CasUniq, Value) -&gt; any()</tt></p>
@@ -94,16 +76,6 @@
 <div class="spec">
 <p><tt>code_change(OldVsn, State, Extra) -&gt; any()</tt></p>
 </div>
-
-<h3 class="function"><a name="decrement-2">decrement/2</a></h3>
-<div class="spec">
-<p><tt>decrement(Key, Value) -&gt; any()</tt></p>
-</div><p>decrement the value using gen_server</p>
-
-<h3 class="function"><a name="decrement-4">decrement/4</a></h3>
-<div class="spec">
-<p><tt>decrement(Host, Port, Key, Value) -&gt; any()</tt></p>
-</div><p>decrement the value directly</p>
 
 <h3 class="function"><a name="delete-2">delete/2</a></h3>
 <div class="spec">
@@ -140,30 +112,10 @@
 <p><tt>handle_info(Info, State) -&gt; any()</tt></p>
 </div>
 
-<h3 class="function"><a name="increment-2">increment/2</a></h3>
-<div class="spec">
-<p><tt>increment(Key, Value) -&gt; any()</tt></p>
-</div><p>increment the value using gen_server</p>
-
-<h3 class="function"><a name="increment-4">increment/4</a></h3>
-<div class="spec">
-<p><tt>increment(Host, Port, Key, Value) -&gt; any()</tt></p>
-</div><p>increment the value directly</p>
-
 <h3 class="function"><a name="init-1">init/1</a></h3>
 <div class="spec">
 <p><tt>init(X1) -&gt; any()</tt></p>
 </div>
-
-<h3 class="function"><a name="prepend-2">prepend/2</a></h3>
-<div class="spec">
-<p><tt>prepend(Key, Value) -&gt; any()</tt></p>
-</div><p>"add this value to an existing key before existing Value" using gen_server</p>
-
-<h3 class="function"><a name="prepend-4">prepend/4</a></h3>
-<div class="spec">
-<p><tt>prepend(Host, Port, Key, Value) -&gt; any()</tt></p>
-</div><p>"add this value to an existing key before existing Value" directly</p>
 
 <h3 class="function"><a name="quit-0">quit/0</a></h3>
 <div class="spec">
@@ -200,19 +152,19 @@
 <p><tt>stats() -&gt; any()</tt></p>
 </div><p>retrieve memcached stats using gen_server</p>
 
+<h3 class="function"><a name="stats-1">stats/1</a></h3>
+<div class="spec">
+<p><tt>stats(Args) -&gt; any()</tt></p>
+</div><p>retrieve memcached stats based on args using gen_server</p>
+
 <h3 class="function"><a name="stats-2">stats/2</a></h3>
 <div class="spec">
 <p><tt>stats(Host, Port) -&gt; any()</tt></p>
 </div><p>retrieve memcached stats directly</p>
 
-<h3 class="function"><a name="stats_args-1">stats_args/1</a></h3>
+<h3 class="function"><a name="stats-3">stats/3</a></h3>
 <div class="spec">
-<p><tt>stats_args(Args) -&gt; any()</tt></p>
-</div><p>retrieve memcached stats based on args using gen_server</p>
-
-<h3 class="function"><a name="stats_args-3">stats_args/3</a></h3>
-<div class="spec">
-<p><tt>stats_args(Host, Port, Args) -&gt; any()</tt></p>
+<p><tt>stats(Host, Port, Args) -&gt; any()</tt></p>
 </div><p>retrieve memcached stats based on args directly</p>
 
 <h3 class="function"><a name="terminate-2">terminate/2</a></h3>
@@ -232,6 +184,6 @@
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
-<p><i>Generated by EDoc, Jan 15 2009, 10:35:38.</i></p>
+<p><i>Generated by EDoc, Jan 15 2009, 15:22:34.</i></p>
 </body>
 </html>
