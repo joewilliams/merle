@@ -6,6 +6,15 @@ Info : http://github.com/joewilliams/merle/
 
 This code is available as Open Source Software under the MIT license.
 
+Features:
+* Support for stats, version, get, delete, set, add, replace, append, prepend, cas
+* Supports making calls to memcached directly as well as through gen_server
+
+To Do:
+* The noreply option and the append, prepend, increment and decrement commands will likely be added in the future
+* Support for retrieving multiple keys at once
+* Socket pool/reuse
+
 Usage:
 
 * Start it up *
@@ -13,18 +22,17 @@ Usage:
 2> merle:start_link("localhost", 11211).
 {ok,<0.38.0>}
 
-* Set and get some data* 
+* Set and get some data * 
 
 9> merle:set("b", "1", "0", [asdf,[{asdf, asdf}, asdf]]).
 ["STORED"]
-10> merle:get("b").                                       
+10> merle:get("b").
 [[asdf,[{asdf,asdf},asdf]]]
 
 * Get the memcached version *
 
 11> merle:version().
 ["VERSION 1.2.6"]
-
 
 * Get memcached stats *
 
@@ -40,6 +48,26 @@ Usage:
  "STAT bytes_read 128911","STAT bytes_written 257735",
  "STAT limit_maxbytes 67108864","STAT threads 1","END"]
 
+* Get stats with arguments *
+
+145>  merle:stats("localhost", 11211, "slabs").
+["STAT 1:chunk_size 104","STAT 1:chunks_per_page 10082",
+ "STAT 1:total_pages 1","STAT 1:total_chunks 10082",
+ "STAT 1:used_chunks 10081","STAT 1:free_chunks 1",
+ "STAT 1:free_chunks_end 10080","STAT 21:chunk_size 10320",
+ "STAT 21:chunks_per_page 101","STAT 21:total_pages 1",
+ "STAT 21:total_chunks 101","STAT 21:used_chunks 101",
+ "STAT 21:free_chunks 0","STAT 21:free_chunks_end 100",
+ "STAT active_slabs 2","STAT total_malloced 2090848","END"]
+
+* Direct memcached call example *
+
+13> merle:set("localhost", 11211, "a", "1", "0", asdf).
+["STORED"]
+14> merle:get("localhost", 11211, "a").                
+[asdf]
+
+
 
 API:
 
@@ -47,30 +75,39 @@ start_link(Host, Port)
 
 stats()
 
+stats(Host, Port)
+
+stats(Args)
+
+stats(Host, Port, Args)
+
 version()
+
+version(Host, Port)
 
 get(Key)
 
+get(Host, Port, Key)
+
 delete(Key, Time)
+
+delete(Host, Port, Key, Time)
 
 set(Key, Flag, ExpTime, Data)
 
+set(Host, Port, Key, Flag, ExpTime, Data)
+
 add(Key, Flag, ExpTime, Data)
+
+add(Host, Port, Key, Flag, ExpTime, Data)
 
 replace(Key, Flag, ExpTime, Data)
 
-append(Key, Data)
+replace(Host, Port, Key, Flag, ExpTime, Data)
 
-prepend(Key, Data)
+cas(Key, Flag, ExpTime, CasUniq, Data)
+
+cas(Host, Port, Key, Flag, ExpTime, CasUniq, Data)
 
 quit()
-
-stats_args() *untested*
-
-cas(Key, Flag, ExpTime, CasUniq, Data) *untested
-
-increment(Key, Data) *untested
-
-decrement(Key, Data) *untested
-
 
