@@ -43,14 +43,12 @@
 	{reuseaddr, true}, {active, true}]).
 
 %% gen_server API
--export([start_link/2, stats/0, stats_args/1, version/0,
-  get/1,delete/2,set/4,add/4,replace/4,append/2,prepend/2,
-  increment/2,decrement/2,cas/5,quit/0]).
+-export([start_link/2, stats/0, stats/1, version/0,
+  get/1, delete/2, set/4, add/4, replace/4, cas/5, quit/0]).
 
 %% direct API
--export([stats/2, stats_args/3, version/2,
-  get/3,delete/4,set/6,add/6,replace/6,append/4,prepend/4,
-  increment/4,decrement/4,cas/7]).
+-export([stats/2, stats/3, version/2,
+  get/3, delete/4, set/6, add/6, replace/6, cas/7]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -169,20 +167,6 @@ handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, #state{socket = 
     	ExpTime, <<" ">>, Bytes, <<" ">>, CasUniq]), Bin),
     {reply, Reply, S#state{socket = Socket}};
 
-%%	
-%% Increment/Decrement Commands
-%%
-    
-handle_call({increment, {Key, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = term_to_binary(Value),
-    Reply = send_storage_cmd(Socket, iolist_to_binary([<<"incr ">>, Key]), Bin),
-    {reply, Reply, S#state{socket = Socket}};
-    
-handle_call({decrement, {Key, Value}}, _From, #state{socket = Socket} = S) ->
-	Bin = term_to_binary(Value),
-    Reply = send_storage_cmd(Socket, iolist_to_binary([<<"decr ">>, Key]), Bin),
-    {reply, Reply, S#state{socket = Socket}};
-
 %%
 %% Exit
 %%
@@ -248,11 +232,11 @@ stats(Host, Port) ->
     Reply.
 
 %% @doc retrieve memcached stats based on args using gen_server
-stats_args(Args) ->
+stats(Args) ->
 	gen_server:call(?SERVER, {stats,{Args}}).
 
 %% @doc retrieve memcached stats based on args directly
-stats_args(Host, Port, Args) ->
+stats(Host, Port, Args) ->
     Reply = send_generic_cmd(Host, Port, iolist_to_binary([<<"stats ">>, Args])),
     Reply.
 
@@ -349,28 +333,6 @@ replace(Host, Port, Key, Flag, ExpTime, Value) ->
     	ExpTime, <<" ">>, Bytes]), Bin),
     Reply.
     
-%% @doc "add this value to an existing key after existing Value" using gen_server
-append(Key, Value) ->
-	gen_server:call(?SERVER, {append, {Key, Value}}).	
-	
-%% @doc "add this value to an existing key after existing Value" directly
-append(Host, Port, Key, Value) ->
-	Bin = term_to_binary(Value),
-	Bytes = integer_to_list(size(Bin)),
-    Reply = send_storage_cmd(Host, Port, iolist_to_binary([<<"append ">>, Key, <<" 0 0 ">>, Bytes]), Bin),
-    Reply.
-    
-%% @doc "add this value to an existing key before existing Value" using gen_server
-prepend(Key, Value) ->
-	gen_server:call(?SERVER, {prepend, {Key, Value}}).
-
-%% @doc "add this value to an existing key before existing Value" directly
-prepend(Host, Port, Key, Value) ->
-	Bin = term_to_binary(Value),
-	Bytes = integer_to_list(size(Bin)),
-    Reply = send_storage_cmd(Host, Port, iolist_to_binary([<<"prepend ">>, Key, <<" 0 0 ">>, Bytes]), Bin),
-    Reply.	
-
 %% @doc "store this Vvlue but only if no one else has updated since I last fetched it" using gen_server
 cas(Key, Flag, ExpTime, CasUniq, Value) ->
 	gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Value}}).
@@ -381,32 +343,6 @@ cas(Host, Port, Key, Flag, ExpTime, CasUniq, Value) ->
 	Bytes = integer_to_list(size(Bin)),
     Reply = send_storage_cmd(Host, Port, iolist_to_binary([<<"cas ">>, Key, <<" ">>, Flag, <<" ">>, 
     	ExpTime, <<" ">>, Bytes, <<" ">>, CasUniq]), Bin),
-    Reply.
-%%	
-%% Increment/Decrement Commands
-%%
-
-%% Commands "incr" and "decr" are used to change Value for some item
-%% in-place, incrementing or decrementing it.
-
-%% @doc increment the value using gen_server
-increment(Key, Value) ->
-	gen_server:call(?SERVER, {increment, {Key, Value}}).
-
-%% @doc increment the value directly
-increment(Host, Port, Key, Value) ->
-	Bin = term_to_binary(Value),
-    Reply = send_storage_cmd(Host, Port, iolist_to_binary([<<"incr ">>, Key]), Bin),
-    Reply.
-    
-%% @doc decrement the value using gen_server
-decrement(Key, Value) ->
-	gen_server:call(?SERVER, {decrement, {Key, Value}}).
-	
-%% @doc decrement the value directly
-decrement(Host, Port, Key, Value) ->
-	Bin = term_to_binary(Value),
-    Reply = send_storage_cmd(Host, Port, iolist_to_binary([<<"decr ">>, Key]), Bin),
     Reply.
 
 %%
@@ -436,7 +372,7 @@ send_generic_cmd(Host, Port, Cmd) ->
 	Reply = recv_simple_reply(),
 	gen_tcp:close(Socket),
 	Reply.	
-	
+
 %% @private
 %% @doc send_storage_cmd/3 funtion for storage commands
 send_storage_cmd(Socket, Cmd, Value) ->
@@ -485,6 +421,10 @@ recv_simple_reply() ->
 %% @doc receive function for respones containing VALUEs
 recv_complex_reply(Socket) ->
 	receive
+		%% For receiving get responses where the key does not exist
+		{tcp, Socket, <<"END\r\n">>} ->
+			["END"];
+		%% For receiving get responses containing data	
 		{tcp, Socket, Data} ->
 			%% Reply format <<"VALUE SOMEKEY FLAG BYTES\r\nSOMEVALUE\r\nEND\r\n">>
   			Parse = io_lib:fread("~s ~s ~u ~u\r\n", binary_to_list(Data)),
