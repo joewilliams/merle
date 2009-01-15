@@ -365,19 +365,33 @@ recv_simple_reply() ->
     after 5000 ->
    		timeout
     end.
-
 %% @private
-%% @doc receive function for reponses containing a VALUE
+%% @doc receive function for respones containing VALUEs
 recv_complex_reply(Socket) ->
 	receive
 		{tcp, Socket, Data} ->
 			%% Reply format <<"VALUE SOMEKEY FLAG BYTES\r\nSOMEVALUE\r\nEND\r\n">>
   			Parse = io_lib:fread("~s ~s ~u ~u\r\n", binary_to_list(Data)),
-  			{ok,[_,_,_,Bytes], Rest} = Parse,
-  			RestBin = list_to_binary(Rest),
-  			<<BinTerm:Bytes/binary, "\r\nEND\r\n">> = RestBin,
-  			Term = binary_to_term(BinTerm),
-  			[Term]
+  			{ok,[_,_,_,Bytes], ListBin} = Parse,
+  			Bin = list_to_binary(ListBin),
+  			Reply = get_data(Socket, Bin, Bytes, length(ListBin)),
+  			[Reply]
     after 5000 ->
    		timeout
     end.
+
+%% @private
+%% @doc recieve loop to get all data   
+get_data(Socket, Bin, Bytes, Len) ->
+	if
+	Len < Bytes + 7 ->
+		receive
+			{tcp, Socket, Data} ->
+				Combined = <<Bin/binary, Data/binary>>,
+		 		get_data(Socket, Combined, Bytes, size(Combined))
+		after 5000 ->
+	   		timeout
+	    end;
+	true ->
+		binary_to_term(Bin)
+	end.

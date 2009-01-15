@@ -6,53 +6,39 @@ Info : http://github.com/joewilliams/merle/
 
 This code is available as Open Source Software under the MIT license.
 
-Caveat : At the moment getting objects from memcached that are larger
-than about 1433 bytes will cause merle to fail. I am working on a better
-loop to get all the data and should have something soon.
-
 Usage:
 
-*Starting things up:*
+* Start it up *
 
-1> merle:start_link("localhost", 11211).
-{ok,<0.33.0>}
+2> merle:start_link("localhost", 11211).
+{ok,<0.38.0>}
 
-*Storing and retreiving terms:*
+* Set and get some data* 
 
-2> SomeTerm = something. 
-something
-3> merle:set("a", "1", "0", SomeTerm).  
+9> merle:set("b", "1", "0", [asdf,[{asdf, asdf}, asdf]]).
 ["STORED"]
-4> merle:get("a").                      
-something
+10> merle:get("b").                                       
+[[asdf,[{asdf,asdf},asdf]]]
 
-5> SomeTerm1 = "howaboutthis".        
-"howaboutthis"
-6> merle:set("b", "1", "0", SomeTerm1).
-["STORED"]
-7> merle:get("b").                     
-"howaboutthis"
+* Get the memcached version *
 
-*Deleting terms:*
+11> merle:version().
+["VERSION 1.2.6"]
 
-11> merle:delete("b", "0").              
-["DELETED"]
-12> merle:get("b").                      
-["END"]
 
-*Getting stats:*
+* Get memcached stats *
 
-13> merle:stats(). 
-["STAT pid 24117","STAT uptime 172","STAT time 1231789425",
+12> merle:stats().  
+["STAT pid 12177","STAT uptime 6146","STAT time 1231993128",
  "STAT version 1.2.6","STAT pointer_size 64",
- "STAT rusage_user 0.000000","STAT rusage_system 0.004000",
- "STAT curr_items 1","STAT total_items 2","STAT bytes 80",
- "STAT curr_connections 2","STAT total_connections 4",
- "STAT connection_structures 3","STAT cmd_get 3",
- "STAT cmd_set 2","STAT get_hits 2","STAT get_misses 1",
- "STAT evictions 0","STAT bytes_read 101",
- "STAT bytes_written 101","STAT limit_maxbytes 67108864",
- "STAT threads 1","END"]
+ "STAT rusage_user 0.008000","STAT rusage_system 0.000000",
+ "STAT curr_items 2","STAT total_items 2",
+ "STAT bytes 128976","STAT curr_connections 2",
+ "STAT total_connections 3","STAT connection_structures 3",
+ "STAT cmd_get 3","STAT cmd_set 2","STAT get_hits 3",
+ "STAT get_misses 0","STAT evictions 0",
+ "STAT bytes_read 128911","STAT bytes_written 257735",
+ "STAT limit_maxbytes 67108864","STAT threads 1","END"]
 
 
 API:
@@ -60,6 +46,8 @@ API:
 start_link(Host, Port)
 
 stats()
+
+version()
 
 get(Key)
 
@@ -75,10 +63,14 @@ append(Key, Data)
 
 prepend(Key, Data)
 
-cas(Key, Flag, ExpTime, CasUniq, Data)
-
-increment(Key, Data) - Proposed
-
-decrement(Key, Data) - Proposed
-
 quit()
+
+stats_args() *untested*
+
+cas(Key, Flag, ExpTime, CasUniq, Data) *untested
+
+increment(Key, Data) *untested
+
+decrement(Key, Data) *untested
+
+
