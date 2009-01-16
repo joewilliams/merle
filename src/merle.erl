@@ -23,7 +23,7 @@
 %%
 %% @author Joseph Williams <joe@joetify.com>
 %% @copyright 2008 Joseph Williams
-%% @version pre 0.1
+%% @version 0.1
 %% @doc an erlang memcached client.
 %%
 %% This code is available as Open Source Software under the MIT license.
@@ -33,7 +33,7 @@
 -module(merle).
 
 -author("Joseph Williams <joe@joetify.com>").
--version("Version: pre 0.1").
+-version("Version: 0.1").
 
 -behaviour(gen_server).
 

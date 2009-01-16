@@ -1,5 +1,5 @@
 APP_NAME="merle"
-VSN="pre0.1"
+VSN="0.1"
 
 all: compile
 

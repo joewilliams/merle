@@ -1,7 +1,8 @@
 merle : An erlang based memcached client.
 
-Version : pre 0.1
-Author : Joe Williams
+Version : 0.1
+Author : Joe Williams <joe@joetify.com>
+Blog : http://www.joeandmotorboat.com/
 Info : http://github.com/joewilliams/merle/
 
 This code is available as Open Source Software under the MIT license.
@@ -14,6 +15,17 @@ To Do:
 * The noreply option and the append, prepend, increment and decrement commands will likely be added in the future
 * Support for retrieving multiple keys at once
 * Socket pool/reuse
+
+Installation:
+
+$ cd /some/erlang/lib/location/
+$ tar zxvf merle-VERSION.tar.gz
+$ cd merle-VERSION
+$ make
+$ erl
+> merle:module_info().
+
+This should display info about merle if installd correctly.
 
 Usage:
 
