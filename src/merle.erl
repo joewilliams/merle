@@ -79,12 +79,12 @@ get(Key) ->
 %% @doc delete a key and specify time using gen_server
 delete(Key, Time) ->
 	gen_server:call(?SERVER, {delete, {Key, Time}}).
-	
+
 %% Time is the amount of time in seconds
-%% the client wishes the server to refuse 
+%% the client wishes the server to refuse
 %% "add" and "replace" commands with this key.
 
-%%	
+%%
 %% Storage Commands
 %%
 
@@ -100,7 +100,7 @@ delete(Key, Time) ->
 %% Clients should use the value returned from the "gets" command
 %% when issuing "cas" updates.
 %%
-%% *Value* is the value you want to store. 
+%% *Value* is the value you want to store.
 
 %% @doc "store this value" using gen_server
 set(Key, Value) ->
@@ -172,7 +172,7 @@ handle_call({set, {Key, Flag, ExpTime, Value}}, _From, Socket) ->
         Bin
     ),
     {reply, Reply, Socket};
-    
+
 handle_call({add, {Key, Flag, ExpTime, Value}}, _From, Socket) ->
 	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
@@ -197,7 +197,7 @@ handle_call({replace, {Key, Flag, ExpTime, Value}}, _From, Socket) ->
     	Bin
     ),
     {reply, Reply, Socket};
-    
+
 handle_call({append, {Key, Value}}, _From, Socket) ->
 	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
@@ -230,7 +230,7 @@ handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, Socket) ->
         Bin
     ),
     {reply, Reply, Socket}.
-	
+
 %% @private
 handle_cast(_Msg, State) -> {noreply, State}.
 
@@ -259,7 +259,7 @@ send_storage_cmd(Socket, Cmd, Value) ->
     gen_tcp:send(Socket, <<Cmd/binary, "\r\n">>),
     gen_tcp:send(Socket, <<Value/binary, "\r\n">>),
     Reply = recv_simple_reply(),
-   	Reply.	
+   	Reply.
 
 %% @private
 %% @doc send_get_cmd/2 function for retreival commands
@@ -277,35 +277,37 @@ recv_simple_reply() ->
     after ?TIMEOUT ->
    		timeout
     end.
-    
+
 %% @private
 %% @doc receive function for respones containing VALUEs
 recv_complex_reply(Socket) ->
 	receive
-	    %% NKG: Does this need a wilecard?
 		%% For receiving get responses where the key does not exist
 		{tcp, Socket, <<"END\r\n">>} -> ["END"];
-		%% For receiving get responses containing data	
+		%% For receiving get responses containing data
 		{tcp, Socket, Data} ->
 			%% Reply format <<"VALUE SOMEKEY FLAG BYTES\r\nSOMEVALUE\r\nEND\r\n">>
   			Parse = io_lib:fread("~s ~s ~u ~u\r\n", binary_to_list(Data)),
   			{ok,[_,_,_,Bytes], ListBin} = Parse,
   			Bin = list_to_binary(ListBin),
   			Reply = get_data(Socket, Bin, Bytes, length(ListBin)),
-  			[Reply]
+  			[Reply];
+  		{error, closed} ->
+  			connection_closed
     after ?TIMEOUT -> timeout
     end.
 
 %% @private
 %% @doc recieve loop to get all data
-%% @todo 
+%% @todo
 get_data(Socket, Bin, Bytes, Len) when Len < Bytes + 7->
     receive
         %% NKG: Does this need a wildcard?
         {tcp, Socket, Data} ->
             Combined = <<Bin/binary, Data/binary>>,
             get_data(Socket, Combined, Bytes, size(Combined));
-        _ -> error
+     	{error, closed} ->
+  			connection_closed
         after ?TIMEOUT -> timeout
     end;
 get_data(_, Bin, _, _) ->
