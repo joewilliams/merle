@@ -58,26 +58,26 @@
 
 -record(state, {socket}).
 
-%% @doc retrieve memcached stats using gen_server
+%% @doc retrieve memcached stats
 stats() ->
 	gen_server:call(?SERVER, {stats}).
 
-%% @doc retrieve memcached stats based on args using gen_server
+%% @doc retrieve memcached stats based on args
 stats(Args) ->
 	gen_server:call(?SERVER, {stats, {Args}}).
 
-%% @doc retrieve memcached version using gen_server
+%% @doc retrieve memcached version
 version() ->
 	gen_server:call(?SERVER, {version}).
 
-%% @doc retrieve value based off of key using gen_server
+%% @doc retrieve value based off of key
 get(Key) ->
 	case gen_server:call(?SERVER, {getkey,{Key}}) of
 	    ["END"] -> undefined;
 	    [X] -> X
 	end.
 
-%% @doc delete a key and specify time using gen_server
+%% @doc delete a key and specify time
 delete(Key, Time) ->
 	gen_server:call(?SERVER, {delete, {Key, Time}}).
 
@@ -103,7 +103,7 @@ delete(Key, Time) ->
 %%
 %% *Value* is the value you want to store.
 
-%% @doc "store this value" using gen_server
+%% @doc Store a key/value pair.
 set(Key, Value) ->
     Flag = random:uniform(65000),
     set(Key, Flag, "0", Value).
@@ -115,10 +115,10 @@ set(Key, Flag, ExpTime, Value) when is_integer(ExpTime) ->
 set(Key, Flag, ExpTime, Value) ->
 	case gen_server:call(?SERVER, {set, {Key, Flag, ExpTime, Value}}) of
 	    ["STORED"] -> ok;
-	    X -> X
+	    [X] -> X
 	end.
 
-%% @doc Store a key/value pair.
+%% @doc Store a key/value pair if it doesn't already exist.
 add(Key, Flag, ExpTime, Value) ->
 	gen_server:call(?SERVER, {add, {Key, Flag, ExpTime, Value}}).
 
@@ -303,7 +303,6 @@ recv_complex_reply(Socket) ->
 %% @todo
 get_data(Socket, Bin, Bytes, Len) when Len < Bytes + 7->
     receive
-        %% NKG: Does this need a wildcard?
         {tcp, Socket, Data} ->
             Combined = <<Bin/binary, Data/binary>>,
             get_data(Socket, Combined, Bytes, size(Combined));
