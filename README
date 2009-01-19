@@ -1,19 +1,31 @@
 merle : An erlang based memcached client.
 
-Version : pre 0.1
-Author : Joe Williams
+Version : 0.1
+Author : Joe Williams <joe@joetify.com>
+Blog : http://www.joeandmotorboat.com/
 Info : http://github.com/joewilliams/merle/
 
 This code is available as Open Source Software under the MIT license.
 
 Features:
-* Support for stats, version, get, delete, set, add, replace, append, prepend, cas
+* Support for stats, version, get, delete, set, add, replace, cas
 * Supports making calls to memcached directly as well as through gen_server
 
 To Do:
 * The noreply option and the append, prepend, increment and decrement commands will likely be added in the future
 * Support for retrieving multiple keys at once
 * Socket pool/reuse
+
+Installation:
+
+$ cd /some/erlang/lib/location/
+$ tar zxvf merle-VERSION.tar.gz
+$ cd merle-VERSION
+$ make
+$ erl
+> merle:module_info().
+
+This should display info about merle if installd correctly.
 
 Usage:
 
@@ -22,7 +34,7 @@ Usage:
 2> merle:start_link("localhost", 11211).
 {ok,<0.38.0>}
 
-* Set and get some data * 
+* Set and get some data *
 
 9> merle:set("b", "1", "0", [asdf,[{asdf, asdf}, asdf]]).
 ["STORED"]
@@ -36,7 +48,7 @@ Usage:
 
 * Get memcached stats *
 
-12> merle:stats().  
+12> merle:stats().
 ["STAT pid 12177","STAT uptime 6146","STAT time 1231993128",
  "STAT version 1.2.6","STAT pointer_size 64",
  "STAT rusage_user 0.008000","STAT rusage_system 0.000000",
@@ -64,7 +76,7 @@ Usage:
 
 13> merle:set("localhost", 11211, "a", "1", "0", asdf).
 ["STORED"]
-14> merle:get("localhost", 11211, "a").                
+14> merle:get("localhost", 11211, "a").
 [asdf]
 
 
@@ -110,4 +122,3 @@ cas(Key, Flag, ExpTime, CasUniq, Data)
 cas(Host, Port, Key, Flag, ExpTime, CasUniq, Data)
 
 quit()
-
