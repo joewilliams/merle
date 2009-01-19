@@ -47,7 +47,7 @@
 %% gen_server API
 -export([
     start_link/2, stats/0, stats/1, version/0, get/1, delete/2, set/4, add/4,
-    replace/4, cas/5, set/2
+    replace/4, cas/5, set/2, append/2, prepend/2, increment/2, decrement/2
 ]).
 
 %% gen_server callbacks
@@ -130,6 +130,22 @@ replace(Key, Flag, ExpTime, Value) ->
 cas(Key, Flag, ExpTime, CasUniq, Value) ->
 	gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Value}}).
 
+%% @doc Append data to already existing value.
+append(Key, Value) ->
+	gen_server:call(?SERVER, {append, {Key, Value}}).
+
+%% @doc Prepend data to already existing value.
+prepend(Key, Value) ->
+	gen_server:call(?SERVER, {prepend, {Key, Value}}).
+
+%% @doc Increment already existing value.
+increment(Key, Value) ->
+	gen_server:call(?SERVER, {increment, {Key, Value}}).
+
+%% @doc Decrement already existing value.
+decrement(Key, Value) ->
+	gen_server:call(?SERVER, {decrement, {Key, Value}}).
+
 %% @private
 start_link(Host, Port) ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [Host, Port], []).
@@ -199,6 +215,19 @@ handle_call({replace, {Key, Flag, ExpTime, Value}}, _From, Socket) ->
     ),
     {reply, Reply, Socket};
 
+handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, Socket) ->
+	Bin = term_to_binary(Value),
+	Bytes = integer_to_list(size(Bin)),
+    Reply = send_storage_cmd(
+        Socket,
+        iolist_to_binary([
+            <<"cas ">>, Key, <<" ">>, Flag, <<" ">>, ExpTime, <<" ">>, Bytes,
+            <<" ">>, CasUniq
+        ]),
+        Bin
+    ),
+    {reply, Reply, Socket};
+
 handle_call({append, {Key, Value}}, _From, Socket) ->
 	Bin = term_to_binary(Value),
 	Bytes = integer_to_list(size(Bin)),
@@ -219,17 +248,18 @@ handle_call({prepend, {Key, Value}}, _From, Socket) ->
     ),
     {reply, Reply, Socket};
 
-handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, Socket) ->
+handle_call({increment, {Key, Value}}, _From, Socket) ->
 	Bin = term_to_binary(Value),
-	Bytes = integer_to_list(size(Bin)),
-    Reply = send_storage_cmd(
+    Reply = send_generic_cmd(
         Socket,
-        iolist_to_binary([
-            <<"cas ">>, Key, <<" ">>, Flag, <<" ">>, ExpTime, <<" ">>, Bytes,
-            <<" ">>, CasUniq
-        ]),
-        Bin
-    ),
+        iolist_to_binary([<<"incr ">>, Key, Bin])),
+    {reply, Reply, Socket};
+
+handle_call({decrement, {Key, Value}}, _From, Socket) ->
+	Bin = term_to_binary(Value),
+    Reply = send_generic_cmd(
+        Socket,
+        iolist_to_binary([<<"decr ">>, Key, Bin])),
     {reply, Reply, Socket}.
 
 %% @private
