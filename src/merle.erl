@@ -46,7 +46,7 @@
 %% gen_server API
 -export([
     start_link/2, stats/0, stats/1, version/0, get/1, delete/2, set/4, add/4,
-    replace/4, cas/5
+    replace/4, cas/5, set/2
 ]).
 
 %% gen_server callbacks
@@ -103,6 +103,14 @@ delete(Key, Time) ->
 %% *Value* is the value you want to store. 
 
 %% @doc "store this value" using gen_server
+set(Key, Value) ->
+    Flag = random:uniform(65000),
+    set(Key, Flag, "0", Value).
+
+set(Key, Flag, ExpTime, Value) when is_integer(Flag) ->
+    set(Key, integer_to_list(Flag), ExpTime, Value);
+set(Key, Flag, ExpTime, Value) when is_integer(ExpTime) ->
+    set(Key, Flag, integer_to_list(ExpTime), Value);
 set(Key, Flag, ExpTime, Value) ->
 	case gen_server:call(?SERVER, {set, {Key, Flag, ExpTime, Value}}) of
 	    ["STORED"] -> ok;
