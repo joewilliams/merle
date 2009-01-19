@@ -1,4 +1,5 @@
-%% Copyright (c) 2009 Joseph Williams <joe@joetify.com>
+%% Copyright 2009, Joe Williams <joe@joetify.com>
+%% Copyright 2009, Nick Gerakines <nick@gerakines.net>
 %%
 %% Permission is hereby granted, free of charge, to any person
 %% obtaining a copy of this software and associated documentation
