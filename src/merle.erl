@@ -304,7 +304,9 @@ send_get_cmd(Socket, Cmd) ->
 recv_simple_reply() ->
 	receive
 	  	{tcp,_,Data} ->
-        	string:tokens(binary_to_list(Data), "\r\n")
+        	string:tokens(binary_to_list(Data), "\r\n");
+        {error, closed} ->
+  			connection_closed
     after ?TIMEOUT ->
    		timeout
     end.
