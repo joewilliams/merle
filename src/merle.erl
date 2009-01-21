@@ -332,7 +332,6 @@ recv_complex_reply(Socket) ->
 
 %% @private
 %% @doc recieve loop to get all data
-%% @todo
 get_data(Socket, Bin, Bytes, Len) when Len < Bytes + 7->
     receive
         {tcp, Socket, Data} ->
@@ -342,5 +341,6 @@ get_data(Socket, Bin, Bytes, Len) when Len < Bytes + 7->
   			connection_closed
         after ?TIMEOUT -> timeout
     end;
-get_data(_, Bin, _, _) ->
+get_data(_, Data, Bytes, _) ->
+	<<Bin:Bytes/binary, "\r\nEND\r\n">> = Data,
     binary_to_term(Bin).
