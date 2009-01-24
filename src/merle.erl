@@ -348,8 +348,7 @@ recv_simple_reply() ->
         	string:tokens(binary_to_list(Data), "\r\n");
         {error, closed} ->
   			connection_closed
-    after ?TIMEOUT ->
-   		timeout
+    after ?TIMEOUT -> timeout
     end.
 
 %% @private
