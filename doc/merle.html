@@ -9,181 +9,145 @@
 <hr>
 
 <h1>Module merle</h1>
-<ul class="index"><li><a href="#description">Description</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>an erlang memcached client.
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>An Erlang memcached client.
 <p>Copyright © 2008 Joseph Williams</p>
 
-<p><b>Version:</b> pre 0.1</p>
+<p><b>Version:</b> 0.2</p>
 <p><b>Behaviours:</b> <a href="gen_server.html"><tt>gen_server</tt></a>.</p>
 <p><b>Authors:</b> Joseph Williams (<a href="mailto:joe@joetify.com"><tt>joe@joetify.com</tt></a>).</p>
 
-<h2><a name="description">Description</a></h2><p>an erlang memcached client.</p>
+<h2><a name="description">Description</a></h2><p>An Erlang memcached client.</p>
  
   <p>This code is available as Open Source Software under the MIT license.</p>
  
   Updates at http://github.com/joewilliams/merle/
 <h2><a name="index">Function Index</a></h2>
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add-4">add/4</a></td><td>"store this value, but only if the server *doesn't* already hold Value for this key" using gen_server.</td></tr>
-<tr><td valign="top"><a href="#add-6">add/6</a></td><td>"store this value, but only if the server *doesn't* already hold Value for this key" directly.</td></tr>
-<tr><td valign="top"><a href="#cas-5">cas/5</a></td><td>"store this Vvlue but only if no one else has updated since I last fetched it" using gen_server.</td></tr>
-<tr><td valign="top"><a href="#cas-7">cas/7</a></td><td>"store this Vvlue but only if no one else has updated since I last fetched it" directly.</td></tr>
-<tr><td valign="top"><a href="#code_change-3">code_change/3</a></td><td></td></tr>
-<tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>delete a key and specify time using gen_server.</td></tr>
-<tr><td valign="top"><a href="#delete-4">delete/4</a></td><td>delete a key and specify time directly.</td></tr>
-<tr><td valign="top"><a href="#get-1">get/1</a></td><td>retrieve value based off of key using gen_server.</td></tr>
-<tr><td valign="top"><a href="#get-3">get/3</a></td><td>retrieve value based off of key directly.</td></tr>
-<tr><td valign="top"><a href="#handle_call-3">handle_call/3</a></td><td></td></tr>
-<tr><td valign="top"><a href="#handle_cast-2">handle_cast/2</a></td><td></td></tr>
-<tr><td valign="top"><a href="#handle_info-2">handle_info/2</a></td><td></td></tr>
-<tr><td valign="top"><a href="#init-1">init/1</a></td><td></td></tr>
-<tr><td valign="top"><a href="#quit-0">quit/0</a></td><td>quit() close the socket using gen_server.</td></tr>
-<tr><td valign="top"><a href="#replace-4">replace/4</a></td><td>"store this value, but only if the server *does* already hold Value for this key" using gen_server.</td></tr>
-<tr><td valign="top"><a href="#replace-6">replace/6</a></td><td>"store this value, but only if the server *does* already hold Value for this key" directly.</td></tr>
-<tr><td valign="top"><a href="#set-4">set/4</a></td><td>"store this value" using gen_server.</td></tr>
-<tr><td valign="top"><a href="#set-6">set/6</a></td><td>"store this value" directly.</td></tr>
-<tr><td valign="top"><a href="#start_link-2">start_link/2</a></td><td></td></tr>
-<tr><td valign="top"><a href="#stats-0">stats/0</a></td><td>retrieve memcached stats using gen_server.</td></tr>
-<tr><td valign="top"><a href="#stats-1">stats/1</a></td><td>retrieve memcached stats based on args using gen_server.</td></tr>
-<tr><td valign="top"><a href="#stats-2">stats/2</a></td><td>retrieve memcached stats directly.</td></tr>
-<tr><td valign="top"><a href="#stats-3">stats/3</a></td><td>retrieve memcached stats based on args directly.</td></tr>
-<tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td></td></tr>
-<tr><td valign="top"><a href="#version-0">version/0</a></td><td>retrieve memcached version using gen_server.</td></tr>
-<tr><td valign="top"><a href="#version-2">version/2</a></td><td>retrieve memcached stats based on args directly.</td></tr>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add-2">add/2</a></td><td>Store a key/value pair if it doesn't already exist.</td></tr>
+<tr><td valign="top"><a href="#add-4">add/4</a></td><td></td></tr>
+<tr><td valign="top"><a href="#cas-3">cas/3</a></td><td>Store a key/value pair if possible.</td></tr>
+<tr><td valign="top"><a href="#cas-5">cas/5</a></td><td></td></tr>
+<tr><td valign="top"><a href="#connect-0">connect/0</a></td><td>connect to memcached with defaults.</td></tr>
+<tr><td valign="top"><a href="#connect-2">connect/2</a></td><td>connect to memcached.</td></tr>
+<tr><td valign="top"><a href="#delete-1">delete/1</a></td><td>delete a key.</td></tr>
+<tr><td valign="top"><a href="#delete-2">delete/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#flushall-0">flushall/0</a></td><td>invalidate all existing items immediately.</td></tr>
+<tr><td valign="top"><a href="#flushall-1">flushall/1</a></td><td>invalidate all existing items based on the expire time argument.</td></tr>
+<tr><td valign="top"><a href="#getkey-1">getkey/1</a></td><td>retrieve value based off of key.</td></tr>
+<tr><td valign="top"><a href="#getskey-1">getskey/1</a></td><td>retrieve value based off of key for use with cas.</td></tr>
+<tr><td valign="top"><a href="#replace-2">replace/2</a></td><td>Replace an existing key/value pair.</td></tr>
+<tr><td valign="top"><a href="#replace-4">replace/4</a></td><td></td></tr>
+<tr><td valign="top"><a href="#set-2">set/2</a></td><td>Store a key/value pair.</td></tr>
+<tr><td valign="top"><a href="#set-4">set/4</a></td><td></td></tr>
+<tr><td valign="top"><a href="#stats-0">stats/0</a></td><td>retrieve memcached stats.</td></tr>
+<tr><td valign="top"><a href="#stats-1">stats/1</a></td><td>retrieve memcached stats based on args.</td></tr>
+<tr><td valign="top"><a href="#verbosity-1">verbosity/1</a></td><td>set the verbosity level of the logging output.</td></tr>
+<tr><td valign="top"><a href="#version-0">version/0</a></td><td>retrieve memcached version.</td></tr>
 </table>
 
 <h2><a name="functions">Function Details</a></h2>
 
+<h3 class="function"><a name="add-2">add/2</a></h3>
+<div class="spec">
+<p><tt>add(Key, Value) -&gt; any()</tt></p>
+</div><p>Store a key/value pair if it doesn't already exist.</p>
+
 <h3 class="function"><a name="add-4">add/4</a></h3>
 <div class="spec">
 <p><tt>add(Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
-</div><p>"store this value, but only if the server *doesn't* already hold Value for this key" using gen_server</p>
+</div>
 
-<h3 class="function"><a name="add-6">add/6</a></h3>
+<h3 class="function"><a name="cas-3">cas/3</a></h3>
 <div class="spec">
-<p><tt>add(Host, Port, Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
-</div><p>"store this value, but only if the server *doesn't* already hold Value for this key" directly</p>
+<p><tt>cas(Key, CasUniq, Value) -&gt; any()</tt></p>
+</div><p>Store a key/value pair if possible.</p>
 
 <h3 class="function"><a name="cas-5">cas/5</a></h3>
 <div class="spec">
 <p><tt>cas(Key, Flag, ExpTime, CasUniq, Value) -&gt; any()</tt></p>
-</div><p>"store this Vvlue but only if no one else has updated since I last fetched it" using gen_server</p>
-
-<h3 class="function"><a name="cas-7">cas/7</a></h3>
-<div class="spec">
-<p><tt>cas(Host, Port, Key, Flag, ExpTime, CasUniq, Value) -&gt; any()</tt></p>
-</div><p>"store this Vvlue but only if no one else has updated since I last fetched it" directly</p>
-
-<h3 class="function"><a name="code_change-3">code_change/3</a></h3>
-<div class="spec">
-<p><tt>code_change(OldVsn, State, Extra) -&gt; any()</tt></p>
 </div>
+
+<h3 class="function"><a name="connect-0">connect/0</a></h3>
+<div class="spec">
+<p><tt>connect() -&gt; any()</tt></p>
+</div><p>connect to memcached with defaults</p>
+
+<h3 class="function"><a name="connect-2">connect/2</a></h3>
+<div class="spec">
+<p><tt>connect(Host, Port) -&gt; any()</tt></p>
+</div><p>connect to memcached</p>
+
+<h3 class="function"><a name="delete-1">delete/1</a></h3>
+<div class="spec">
+<p><tt>delete(Key) -&gt; any()</tt></p>
+</div><p>delete a key</p>
 
 <h3 class="function"><a name="delete-2">delete/2</a></h3>
 <div class="spec">
 <p><tt>delete(Key, Time) -&gt; any()</tt></p>
-</div><p>delete a key and specify time using gen_server</p>
-
-<h3 class="function"><a name="delete-4">delete/4</a></h3>
-<div class="spec">
-<p><tt>delete(Host, Port, Key, Time) -&gt; any()</tt></p>
-</div><p>delete a key and specify time directly</p>
-
-<h3 class="function"><a name="get-1">get/1</a></h3>
-<div class="spec">
-<p><tt>get(Key) -&gt; any()</tt></p>
-</div><p>retrieve value based off of key using gen_server</p>
-
-<h3 class="function"><a name="get-3">get/3</a></h3>
-<div class="spec">
-<p><tt>get(Host, Port, Key) -&gt; any()</tt></p>
-</div><p>retrieve value based off of key directly</p>
-
-<h3 class="function"><a name="handle_call-3">handle_call/3</a></h3>
-<div class="spec">
-<p><tt>handle_call(X1, From, State) -&gt; any()</tt></p>
 </div>
 
-<h3 class="function"><a name="handle_cast-2">handle_cast/2</a></h3>
+<h3 class="function"><a name="flushall-0">flushall/0</a></h3>
 <div class="spec">
-<p><tt>handle_cast(Msg, State) -&gt; any()</tt></p>
-</div>
+<p><tt>flushall() -&gt; any()</tt></p>
+</div><p>invalidate all existing items immediately</p>
 
-<h3 class="function"><a name="handle_info-2">handle_info/2</a></h3>
+<h3 class="function"><a name="flushall-1">flushall/1</a></h3>
 <div class="spec">
-<p><tt>handle_info(Info, State) -&gt; any()</tt></p>
-</div>
+<p><tt>flushall(Delay) -&gt; any()</tt></p>
+</div><p>invalidate all existing items based on the expire time argument</p>
 
-<h3 class="function"><a name="init-1">init/1</a></h3>
+<h3 class="function"><a name="getkey-1">getkey/1</a></h3>
 <div class="spec">
-<p><tt>init(X1) -&gt; any()</tt></p>
-</div>
+<p><tt>getkey(Key) -&gt; any()</tt></p>
+</div><p>retrieve value based off of key</p>
 
-<h3 class="function"><a name="quit-0">quit/0</a></h3>
+<h3 class="function"><a name="getskey-1">getskey/1</a></h3>
 <div class="spec">
-<p><tt>quit() -&gt; any()</tt></p>
-</div><p>quit() close the socket using gen_server</p>
+<p><tt>getskey(Key) -&gt; any()</tt></p>
+</div><p>retrieve value based off of key for use with cas</p>
+
+<h3 class="function"><a name="replace-2">replace/2</a></h3>
+<div class="spec">
+<p><tt>replace(Key, Value) -&gt; any()</tt></p>
+</div><p>Replace an existing key/value pair.</p>
 
 <h3 class="function"><a name="replace-4">replace/4</a></h3>
 <div class="spec">
 <p><tt>replace(Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
-</div><p>"store this value, but only if the server *does* already hold Value for this key" using gen_server</p>
+</div>
 
-<h3 class="function"><a name="replace-6">replace/6</a></h3>
+<h3 class="function"><a name="set-2">set/2</a></h3>
 <div class="spec">
-<p><tt>replace(Host, Port, Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
-</div><p>"store this value, but only if the server *does* already hold Value for this key" directly</p>
+<p><tt>set(Key, Value) -&gt; any()</tt></p>
+</div><p>Store a key/value pair.</p>
 
 <h3 class="function"><a name="set-4">set/4</a></h3>
 <div class="spec">
 <p><tt>set(Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
-</div><p>"store this value" using gen_server</p>
-
-<h3 class="function"><a name="set-6">set/6</a></h3>
-<div class="spec">
-<p><tt>set(Host, Port, Key, Flag, ExpTime, Value) -&gt; any()</tt></p>
-</div><p>"store this value" directly</p>
-
-<h3 class="function"><a name="start_link-2">start_link/2</a></h3>
-<div class="spec">
-<p><tt>start_link(Host, Port) -&gt; any()</tt></p>
 </div>
 
 <h3 class="function"><a name="stats-0">stats/0</a></h3>
 <div class="spec">
 <p><tt>stats() -&gt; any()</tt></p>
-</div><p>retrieve memcached stats using gen_server</p>
+</div><p>retrieve memcached stats</p>
 
 <h3 class="function"><a name="stats-1">stats/1</a></h3>
 <div class="spec">
 <p><tt>stats(Args) -&gt; any()</tt></p>
-</div><p>retrieve memcached stats based on args using gen_server</p>
+</div><p>retrieve memcached stats based on args</p>
 
-<h3 class="function"><a name="stats-2">stats/2</a></h3>
+<h3 class="function"><a name="verbosity-1">verbosity/1</a></h3>
 <div class="spec">
-<p><tt>stats(Host, Port) -&gt; any()</tt></p>
-</div><p>retrieve memcached stats directly</p>
-
-<h3 class="function"><a name="stats-3">stats/3</a></h3>
-<div class="spec">
-<p><tt>stats(Host, Port, Args) -&gt; any()</tt></p>
-</div><p>retrieve memcached stats based on args directly</p>
-
-<h3 class="function"><a name="terminate-2">terminate/2</a></h3>
-<div class="spec">
-<p><tt>terminate(Reason, State) -&gt; any()</tt></p>
-</div>
+<p><tt>verbosity(Args) -&gt; any()</tt></p>
+</div><p>set the verbosity level of the logging output</p>
 
 <h3 class="function"><a name="version-0">version/0</a></h3>
 <div class="spec">
 <p><tt>version() -&gt; any()</tt></p>
-</div><p>retrieve memcached version using gen_server</p>
-
-<h3 class="function"><a name="version-2">version/2</a></h3>
-<div class="spec">
-<p><tt>version(Host, Port) -&gt; any()</tt></p>
-</div><p>retrieve memcached stats based on args directly</p>
+</div><p>retrieve memcached version</p>
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
-<p><i>Generated by EDoc, Jan 15 2009, 17:14:32.</i></p>
+<p><i>Generated by EDoc, Jan 24 2009, 17:04:26.</i></p>
 </body>
 </html>
