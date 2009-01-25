@@ -1,10 +1,10 @@
 LIBDIR=`erl -eval 'io:format("~s~n", [code:lib_dir()])' -s init stop -noshell`
 APP_NAME="merle"
-VSN="0.1"
+VSN="0.2"
 
 all: compile
 
-docs: 
+docs:
 	erl -noshell -run edoc_run application "'$(APP_NAME)'" '"."' '$(VSN)' -s init stop
 
 compile:

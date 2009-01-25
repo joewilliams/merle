@@ -1,124 +1,67 @@
 merle : An erlang based memcached client.
 
-Version : 0.1
+Version : 0.2
+
 Author : Joe Williams <joe@joetify.com>
-Blog : http://www.joeandmotorboat.com/
+Contributors : Nick Gerakines <nick@gerakines.net>
+
 Info : http://github.com/joewilliams/merle/
 
 This code is available as Open Source Software under the MIT license.
 
+
 Features:
-* Support for stats, version, get, delete, set, add, replace, cas
-* Supports making calls to memcached directly as well as through gen_server
+* Support for stats, version, getkey, getskey, delete, set, add, replace, cas, flushall, verbosity
 
-To Do:
-* The noreply option and the append, prepend, increment and decrement commands will likely be added in the future
-* Support for retrieving multiple keys at once
-* Socket pool/reuse
-
-Installation:
-
-$ cd /some/erlang/lib/location/
-$ tar zxvf merle-VERSION.tar.gz
-$ cd merle-VERSION
-$ make
-$ erl
-> merle:module_info().
-
-This should display info about merle if installd correctly.
 
 Usage:
 
-* Start it up *
+* Connecting to memcached *
 
-2> merle:start_link("localhost", 11211).
-{ok,<0.38.0>}
+> merle:connect().
 
-* Set and get some data *
+> merle:connect("localhost", 11211).
 
-9> merle:set("b", "1", "0", [asdf,[{asdf, asdf}, asdf]]).
-["STORED"]
-10> merle:get("b").
-[[asdf,[{asdf,asdf},asdf]]]
 
-* Get the memcached version *
+* A few operations *
 
-11> merle:version().
+> merle:set(a, asdf).
+ok
+> merle:getkey(a).
+asdf
+
+> merle:set(a, asdf).
+ok
+> merle:getskey(a).
+[4,asdf]
+> merle:cas(a, 4, asdfasdf).
+ok
+> merle:getskey(a).
+[5,asdfasdf]
+
+> merle:delete(a).
+ok
+
+* Informational commands *
+
+> merle:version().
 ["VERSION 1.2.6"]
 
-* Get memcached stats *
-
-12> merle:stats().
-["STAT pid 12177","STAT uptime 6146","STAT time 1231993128",
- "STAT version 1.2.6","STAT pointer_size 64",
- "STAT rusage_user 0.008000","STAT rusage_system 0.000000",
- "STAT curr_items 2","STAT total_items 2",
- "STAT bytes 128976","STAT curr_connections 2",
- "STAT total_connections 3","STAT connection_structures 3",
- "STAT cmd_get 3","STAT cmd_set 2","STAT get_hits 3",
- "STAT get_misses 0","STAT evictions 0",
- "STAT bytes_read 128911","STAT bytes_written 257735",
- "STAT limit_maxbytes 67108864","STAT threads 1","END"]
-
-* Get stats with arguments *
-
-145>  merle:stats("localhost", 11211, "slabs").
+> merle:stats(slabs).
 ["STAT 1:chunk_size 104","STAT 1:chunks_per_page 10082",
  "STAT 1:total_pages 1","STAT 1:total_chunks 10082",
  "STAT 1:used_chunks 10081","STAT 1:free_chunks 1",
- "STAT 1:free_chunks_end 10080","STAT 21:chunk_size 10320",
- "STAT 21:chunks_per_page 101","STAT 21:total_pages 1",
- "STAT 21:total_chunks 101","STAT 21:used_chunks 101",
- "STAT 21:free_chunks 0","STAT 21:free_chunks_end 100",
- "STAT active_slabs 2","STAT total_malloced 2090848","END"]
+ "STAT 1:free_chunks_end 10080","STAT active_slabs 1",
+ "STAT total_malloced 1048528","END"]
 
-* Direct memcached call example *
-
-13> merle:set("localhost", 11211, "a", "1", "0", asdf).
-["STORED"]
-14> merle:get("localhost", 11211, "a").
-[asdf]
-
-
-
-API:
-
-start_link(Host, Port)
-
-stats()
-
-stats(Host, Port)
-
-stats(Args)
-
-stats(Host, Port, Args)
-
-version()
-
-version(Host, Port)
-
-get(Key)
-
-get(Host, Port, Key)
-
-delete(Key, Time)
-
-delete(Host, Port, Key, Time)
-
-set(Key, Flag, ExpTime, Data)
-
-set(Host, Port, Key, Flag, ExpTime, Data)
-
-add(Key, Flag, ExpTime, Data)
-
-add(Host, Port, Key, Flag, ExpTime, Data)
-
-replace(Key, Flag, ExpTime, Data)
-
-replace(Host, Port, Key, Flag, ExpTime, Data)
-
-cas(Key, Flag, ExpTime, CasUniq, Data)
-
-cas(Host, Port, Key, Flag, ExpTime, CasUniq, Data)
-
-quit()
+> merle:stats().
+["STAT pid 27195","STAT uptime 497","STAT time 1232843046",
+ "STAT version 1.2.6","STAT pointer_size 64",
+ "STAT rusage_user 0.000000","STAT rusage_system 0.008000",
+ "STAT curr_items 1","STAT total_items 5","STAT bytes 83",
+ "STAT curr_connections 2","STAT total_connections 5",
+ "STAT connection_structures 3","STAT cmd_get 5",
+ "STAT cmd_set 5","STAT get_hits 5","STAT get_misses 0",
+ "STAT evictions 0","STAT bytes_read 216",
+ "STAT bytes_written 468","STAT limit_maxbytes 67108864",
+ "STAT threads 1","END"]

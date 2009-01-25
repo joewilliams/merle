@@ -24,7 +24,7 @@
 %%
 %% @author Joseph Williams <joe@joetify.com>
 %% @copyright 2008 Joseph Williams
-%% @version 0.1
+%% @version 0.2
 %% @seealso http://code.sixapart.com/svn/memcached/trunk/server/doc/protocol.txt
 %% @doc An Erlang memcached client.
 %%
@@ -35,20 +35,22 @@
 -module(merle).
 -behaviour(gen_server).
 
--author("Joseph Williams <joe@joetify.com>").
--version("Version: 0.1").
+-author("Joe Williams <joe@joetify.com>").
+-version("Version: 0.2").
 
 -define(SERVER, ?MODULE).
 -define(TIMEOUT, 5000).
+-define(DEFAULT_HOST, "localhost").
+-define(DEFAULT_PORT, 11211).
 -define(TCP_OPTS, [
     binary, {packet, raw}, {nodelay, true},{reuseaddr, true}, {active, true}
 ]).
 
 %% gen_server API
 -export([
-    start_link/2, stats/0, stats/1, version/0, getkey/1, delete/2, set/4, add/4,
-    replace/4, cas/5, set/2, flushall/0, flushall/1, verbosity/1, add/2, replace/2,
-    cas/3, getskey/1
+    stats/0, stats/1, version/0, getkey/1, delete/2, set/4, add/4, replace/2,
+    replace/4, cas/5, set/2, flushall/0, flushall/1, verbosity/1, add/2,
+    cas/3, getskey/1, connect/0, connect/2, delete/1
 ]).
 
 %% gen_server callbacks
@@ -77,17 +79,26 @@ version() ->
 verbosity(Args) when is_integer(Args) ->
 	verbosity(integer_to_list(Args));
 verbosity(Args)->
-	gen_server:call(?SERVER, {verbosity, {Args}}).
+	case gen_server:call(?SERVER, {verbosity, {Args}}) of
+		["OK"] -> ok;
+		[X] -> X
+	end.
 
 %% @doc invalidate all existing items immediately
 flushall() ->
-	gen_server:call(?SERVER, {flushall}).
+	case gen_server:call(?SERVER, {flushall}) of
+		["OK"] -> ok;
+		[X] -> X
+	end.
 
 %% @doc invalidate all existing items based on the expire time argument
-flushall(Args) when is_integer(Args) ->
-	flushall(integer_to_list(Args));
-flushall(Args) ->
-	gen_server:call(?SERVER, {flushall, {Args}}).
+flushall(Delay) when is_integer(Delay) ->
+	flushall(integer_to_list(Delay));
+flushall(Delay) ->
+	case gen_server:call(?SERVER, {flushall, {Delay}}) of
+		["OK"] -> ok;
+		[X] -> X
+	end.
 
 %% @doc retrieve value based off of key
 getkey(Key) when is_atom(Key) ->
@@ -107,13 +118,20 @@ getskey(Key) ->
 	    [X] -> X
 	end.
 
-%% @doc delete a key and specify time
+%% @doc delete a key
+delete(Key) ->
+	delete(Key, "0").
+
 delete(Key, Time) when is_atom(Key) ->
 	delete(atom_to_list(Key), Time);
 delete(Key, Time) when is_integer(Time) ->
 	delete(Key, integer_to_list(Time));
 delete(Key, Time) ->
-	gen_server:call(?SERVER, {delete, {Key, Time}}).
+	case gen_server:call(?SERVER, {delete, {Key, Time}}) of
+		["DELETED"] -> ok;
+		["NOT_FOUND"] -> not_found;
+		[X] -> X
+	end.
 
 %% Time is the amount of time in seconds
 %% the client wishes the server to refuse
@@ -151,6 +169,7 @@ set(Key, Flag, ExpTime, Value) when is_integer(ExpTime) ->
 set(Key, Flag, ExpTime, Value) ->
 	case gen_server:call(?SERVER, {set, {Key, Flag, ExpTime, Value}}) of
 	    ["STORED"] -> ok;
+	    ["NOT_STORED"] -> not_stored;
 	    [X] -> X
 	end.
 
@@ -166,7 +185,11 @@ add(Key, Flag, ExpTime, Value) when is_integer(Flag) ->
 add(Key, Flag, ExpTime, Value) when is_integer(ExpTime) ->
     add(Key, Flag, integer_to_list(ExpTime), Value);
 add(Key, Flag, ExpTime, Value) ->
-	gen_server:call(?SERVER, {add, {Key, Flag, ExpTime, Value}}).
+	case gen_server:call(?SERVER, {add, {Key, Flag, ExpTime, Value}}) of
+	    ["STORED"] -> ok;
+	    ["NOT_STORED"] -> not_stored;
+	    [X] -> X
+	end.
 
 %% @doc Replace an existing key/value pair.
 replace(Key, Value) ->
@@ -180,7 +203,11 @@ replace(Key, Flag, ExpTime, Value) when is_integer(Flag) ->
 replace(Key, Flag, ExpTime, Value) when is_integer(ExpTime) ->
     replace(Key, Flag, integer_to_list(ExpTime), Value);
 replace(Key, Flag, ExpTime, Value) ->
-	gen_server:call(?SERVER, {replace, {Key, Flag, ExpTime, Value}}).
+	case gen_server:call(?SERVER, {replace, {Key, Flag, ExpTime, Value}}) of
+	    ["STORED"] -> ok;
+	    ["NOT_STORED"] -> not_stored;
+	    [X] -> X
+	end.
 
 %% @doc Store a key/value pair if possible.
 cas(Key, CasUniq, Value) ->
@@ -196,7 +223,19 @@ cas(Key, Flag, ExpTime, CasUniq, Value) when is_integer(ExpTime) ->
 cas(Key, Flag, ExpTime, CasUniq, Value) when is_integer(CasUniq) ->
     cas(Key, Flag, ExpTime, integer_to_list(CasUniq), Value);
 cas(Key, Flag, ExpTime, CasUniq, Value) ->
-	gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Value}}).
+	case gen_server:call(?SERVER, {cas, {Key, Flag, ExpTime, CasUniq, Value}}) of
+	    ["STORED"] -> ok;
+	    ["NOT_STORED"] -> not_stored;
+	    [X] -> X
+	end.
+
+%% @doc connect to memcached with defaults
+connect() ->
+	connect(?DEFAULT_HOST, ?DEFAULT_PORT).
+
+%% @doc connect to memcached
+connect(Host, Port) ->
+	start_link(Host, Port).
 
 %% @private
 start_link(Host, Port) ->
@@ -227,8 +266,8 @@ handle_call({flushall}, _From, Socket) ->
     Reply = send_generic_cmd(Socket, iolist_to_binary([<<"flush_all">>])),
     {reply, Reply, Socket};
 
-handle_call({flushall, {Args}}, _From, Socket) ->
-    Reply = send_generic_cmd(Socket, iolist_to_binary([<<"flush_all ">>, Args])),
+handle_call({flushall, {Delay}}, _From, Socket) ->
+    Reply = send_generic_cmd(Socket, iolist_to_binary([<<"flush_all ">>, Delay])),
     {reply, Reply, Socket};
 
 handle_call({getkey, {Key}}, _From, Socket) ->
@@ -371,7 +410,7 @@ recv_complex_get_reply(Socket) ->
     end.
 
 %% @private
-%% @doc receive function for cas respones containing VALUEs
+%% @doc receive function for cas responses containing VALUEs
 recv_complex_gets_reply(Socket) ->
 	receive
 		%% For receiving get responses where the key does not exist
