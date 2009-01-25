@@ -18,9 +18,13 @@ Usage:
 
 * Connecting to memcached *
 
+Using defaults:
+
 > merle:connect().
 
-> merle:connect("localhost", 11211).
+Set your own:
+
+> merle:connect("HOSTNAME", 11211).
 
 
 * A few operations *
