@@ -40,6 +40,7 @@
 
 -define(SERVER, ?MODULE).
 -define(TIMEOUT, 5000).
+-define(RANDOM_MAX, 65535).
 -define(DEFAULT_HOST, "localhost").
 -define(DEFAULT_PORT, 11211).
 -define(TCP_OPTS, [
@@ -155,7 +156,7 @@ delete(Key, Time) ->
 
 %% @doc Store a key/value pair.
 set(Key, Value) ->
-    Flag = random:uniform(65535),
+    Flag = random:uniform(?RANDOM_MAX),
     set(Key, integer_to_list(Flag), "0", Value).
 
 set(Key, Flag, ExpTime, Value) when is_atom(Key) ->
@@ -173,7 +174,7 @@ set(Key, Flag, ExpTime, Value) ->
 
 %% @doc Store a key/value pair if it doesn't already exist.
 add(Key, Value) ->
-	Flag = random:uniform(65535),
+	Flag = random:uniform(?RANDOM_MAX),
 	add(Key, integer_to_list(Flag), "0", Value).
 
 add(Key, Flag, ExpTime, Value) when is_atom(Key) ->
@@ -191,7 +192,7 @@ add(Key, Flag, ExpTime, Value) ->
 
 %% @doc Replace an existing key/value pair.
 replace(Key, Value) ->
-	Flag = random:uniform(65535),
+	Flag = random:uniform(?RANDOM_MAX),
 	replace(Key, integer_to_list(Flag), "0", Value).
 
 replace(Key, Flag, ExpTime, Value) when is_atom(Key) ->
@@ -209,7 +210,7 @@ replace(Key, Flag, ExpTime, Value) ->
 
 %% @doc Store a key/value pair if possible.
 cas(Key, CasUniq, Value) ->
-	Flag = random:uniform(65535),
+	Flag = random:uniform(?RANDOM_MAX),
 	cas(Key, integer_to_list(Flag), "0", CasUniq, Value).
 
 cas(Key, Flag, ExpTime, CasUniq, Value) when is_atom(Key) ->
