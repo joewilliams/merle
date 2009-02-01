@@ -50,7 +50,7 @@
 -export([
     stats/0, stats/1, version/0, getkey/1, delete/2, set/4, add/4, replace/2,
     replace/4, cas/5, set/2, flushall/0, flushall/1, verbosity/1, add/2,
-    cas/3, getskey/1, connect/0, connect/2, delete/1
+    cas/3, getskey/1, connect/0, connect/2, delete/1, disconnect/0
 ]).
 
 %% gen_server callbacks
@@ -58,8 +58,6 @@
     init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
     code_change/3
 ]).
-
--record(state, {socket}).
 
 %% @doc retrieve memcached stats
 stats() ->
@@ -237,6 +235,11 @@ connect() ->
 connect(Host, Port) ->
 	start_link(Host, Port).
 
+%% @doc disconnect from memcached
+disconnect() ->
+	gen_server:call(?SERVER, {stop}),
+	ok.
+
 %% @private
 start_link(Host, Port) ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [Host, Port], []).
@@ -245,7 +248,9 @@ start_link(Host, Port) ->
 init([Host, Port]) ->
     gen_tcp:connect(Host, Port, ?TCP_OPTS).
 
-%% @private
+handle_call({stop}, _From, Socket) ->
+    {stop, requested_disconnect, Socket};
+
 handle_call({stats}, _From, Socket) ->
     Reply = send_generic_cmd(Socket, iolist_to_binary([<<"stats">>])),
     {reply, Reply, Socket};
@@ -346,7 +351,7 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 %% @private
 %% @doc Closes the socket
-terminate(_Reason, #state{socket = Socket}) ->
+terminate(_Reason, Socket) ->
     gen_tcp:close(Socket),
     ok.
 
