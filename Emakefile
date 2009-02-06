@@ -1,1 +1,1 @@
-{'src/merle.erl', [{outdir, "ebin"}]}.
+{'src/*', [{outdir, "ebin"}]}.
