@@ -1,6 +1,6 @@
 merle : An erlang based memcached client.
 
-Version : pre 0.3
+Version : 0.3
 
 Author : Joe Williams <joe@joetify.com>
 Contributors : Nick Gerakines <nick@gerakines.net>

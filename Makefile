@@ -1,6 +1,6 @@
 LIBDIR=`erl -eval 'io:format("~s~n", [code:lib_dir()])' -s init stop -noshell`
 APP_NAME="merle"
-VSN="0.2"
+VSN="0.3"
 
 all: compile
 

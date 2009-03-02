@@ -24,7 +24,7 @@
 %%
 %% @author Joseph Williams <joe@joetify.com>
 %% @copyright 2008 Joseph Williams
-%% @version 0.2
+%% @version 0.3
 %% @seealso http://code.sixapart.com/svn/memcached/trunk/server/doc/protocol.txt
 %% @doc An Erlang memcached client.
 %%
@@ -36,7 +36,7 @@
 -behaviour(gen_server2).
 
 -author("Joe Williams <joe@joetify.com>").
--version("Version: 0.2").
+-version("Version: 0.3").
 
 -define(SERVER, ?MODULE).
 -define(TIMEOUT, 5000).
