@@ -16,6 +16,16 @@ This code is available as Open Source Software under the MIT license.
 Features:
 * Support for stats, version, getkey, getskey, delete, set, add, replace, cas, flushall, verbosity
 
+Notes:
+* Uses term_to_binary and binary_to_term to serialize/deserialize Erlang terms before sending/receiving them. This allows for native Erlang terms to be returned from memcached but doesn't play well using other languages after setting values with merle or using merle to get values set by other languages.
+
+Merle Based Projects:
+
+http://github.com/cstar/merle
+http://github.com/issuu/merle
+http://github.com/0lvin/merle
+http://github.com/ppolv/merle
+
 Usage:
 
 * Connecting to memcached *
