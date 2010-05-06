@@ -10,10 +10,10 @@ main(_) ->
     Key = rnd_key(),
     Key2 = rnd_key(),
     etap:is(merle:set(Key, "1", "0", "bar"), ok, "Set data"),
-    etap:is(merle:get(Key), "bar", "Get data"),
-    etap:is(merle:get(rnd_key()), undefined, "Get invalid data"),
+    etap:is(merle:getkey(Key), "bar", "Get data"),
+    etap:is(merle:getkey(rnd_key()), undefined, "Get invalid data"),
     etap:is(merle:set(Key2, "1", "0", {foo, bar}), ok, "Set data"),
-    etap:is(merle:get(Key2), {foo, bar}, "Get data"),
+    etap:is(merle:getkey(Key2), {foo, bar}, "Get data"),
     etap:end_tests().
 
 rnd_key() ->
