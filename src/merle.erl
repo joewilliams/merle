@@ -238,7 +238,7 @@ connect(Host, Port) ->
 
 %% @doc disconnect from memcached
 disconnect() ->
-	gen_server2:call(?SERVER, stop).
+	gen_server2:cast(?SERVER, stop).
 
 %% @private
 start_link(Host, Port) ->
