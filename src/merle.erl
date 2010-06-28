@@ -238,8 +238,7 @@ connect(Host, Port) ->
 
 %% @doc disconnect from memcached
 disconnect() ->
-	gen_server2:call(?SERVER, {stop}),
-	ok.
+	gen_server2:call(?SERVER, stop).
 
 %% @private
 start_link(Host, Port) ->
@@ -248,9 +247,6 @@ start_link(Host, Port) ->
 %% @private
 init([Host, Port]) ->
     gen_tcp:connect(Host, Port, ?TCP_OPTS).
-
-handle_call({stop}, _From, Socket) ->
-    {stop, requested_disconnect, Socket};
 
 handle_call({stats}, _From, Socket) ->
     Reply = send_generic_cmd(Socket, iolist_to_binary([<<"stats">>])),
@@ -342,6 +338,9 @@ handle_call({cas, {Key, Flag, ExpTime, CasUniq, Value}}, _From, Socket) ->
     {reply, Reply, Socket}.
 
 %% @private
+handle_cast(stop, State) ->
+   {stop, normal, State};
+
 handle_cast(_Msg, State) -> {noreply, State}.
 
 %% @private
